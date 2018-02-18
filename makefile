@@ -5,7 +5,7 @@ OBJDIR:=$(DIR)/build
 SRCDIR:=$(DIR)/source
 
 # Files
-EXEC :=  LPsolver_2DwHeaders_Test.out 
+EXEC :=  LPsolver_2D_MargTest.out 
 SRC  :=  $(wildcard $(SRCDIR)/*.cpp) 
 OBJ  :=  $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
@@ -16,7 +16,7 @@ CC=icc
 CPP=icpc
 
 # Intel MPI compiler for C++
-MPICC=mpicxx #-g -p # Add -g -p for profiling
+MPICC=mpicxx -g -p
 
 # Compiler flags: crashed when compiling with -O0
 CFLAGS = -O2 -qopenmp  -I$(TACC_FFTW3_INC) -I$(TACC_MKL_INC) -I$(SRCDIR)
@@ -54,7 +54,7 @@ $(OBJDIR)/collisionRoutines_1.o: $(SRCDIR)/collisionRoutines_1.h $(SRCDIR)/LP_om
 $(OBJDIR)/conservationRoutines.o: $(SRCDIR)/conservationRoutines.h $(SRCDIR)/LP_ompi.h
 #$(OBJDIR)/EntropyCalculations.o: $(SRCDIR)/EntropyCalculations.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
 #$(OBJDIR)/EquilibriumSolution.o: $(SRCDIR)/EquilibriumSolution.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
-#$(OBJDIR)/MarginalCreation.o: $(SRCDIR)/MarginalCreation.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
+$(OBJDIR)/MarginalCreation.o: $(SRCDIR)/MarginalCreation.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
 $(OBJDIR)/MomentCalculations.o: $(SRCDIR)/MomentCalculations.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
 $(OBJDIR)/NegativityChecks.o: $(SRCDIR)/NegativityChecks.h  $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h
 $(OBJDIR)/SetInit_1.o: $(SRCDIR)/SetInit_1.h $(SRCDIR)/LP_ompi.h $(SRCDIR)/advection_1.h

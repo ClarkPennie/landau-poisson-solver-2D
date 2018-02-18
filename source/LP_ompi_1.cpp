@@ -325,7 +325,7 @@ int main()
 									buffer_phi[100], buffer_marg[100], buffer_ent[100];				// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_marg (to store the name of the file where the marginals are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_2D_CHECK");															// store the string "non_nu002_3" in buffer_flags
+	sprintf(buffer_flags,"nu0_2D_MargCheck");															// store the string "non_nu002_3" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -354,7 +354,7 @@ int main()
 		#endif
 	#endif
   
-	FILE *fmom, *fu, *fufull; //, *fmarg, *fphi, *fent;													// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg (which will store the values of the marginals), fphi (which will store the values of the potential phi) & fent (which will store the values fo the entropy)
+	FILE *fmom, *fu, *fufull, *fmarg; //, *fphi, *fent;													// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg (which will store the values of the marginals), fphi (which will store the values of the potential phi) & fent (which will store the values fo the entropy)
 
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
 	{
@@ -407,7 +407,7 @@ int main()
       
 		fmom=fopen(buffer_moment,"w");																// set fmom to be a file with the name stored in buffer_moment and set the file access mode of fmom to w (which creates an empty file and allows it to be written to)
 		fu=fopen(buffer_u, "w");																	// set fu to be a file with the name stored in buffer_u and set the file access mode of fu to w (which creates an empty file and allows it to be written to)
-		//fmarg=fopen(buffer_marg,"w");																// set fmarg to be a file with the name stored in buffer_marg and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
+		fmarg=fopen(buffer_marg,"w");																// set fmarg to be a file with the name stored in buffer_marg and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
 		//fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
 		//fent=fopen(buffer_ent,"w");																	// set fent to be a file with the name stored in buffer_ent and set the file access mode of fent to w (which creates an empty file and allows it to be written to)
 
@@ -446,8 +446,8 @@ int main()
 		fprintf(fufull,"\n\n");
 		#endif*/
 
-		//PrintMarginalLoc(fmarg);																	// print the values of x & v1 that the marginal will be evaluated at in the file tagged as fmarg
-		//PrintMarginal(U, fmarg);																	// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
+		PrintMarginalLoc(fmarg);																	// print the values of x & v1 that the marginal will be evaluated at in the file tagged as fmarg
+		PrintMarginal(U, fmarg);																	// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
 	}
   
 	MPI_Bcast(U, size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);   											// send the contents of U, which will be 6*size entries of datatype MPI_DOUBLE, from the process with rank 0 to all processes, using the communicator MPI_COMM_WORLD
@@ -571,7 +571,7 @@ int main()
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
 			if(t%20==0)
 			{
-				//PrintMarginal(U, fmarg);															// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
+				PrintMarginal(U, fmarg);															// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
 			}
 		}
 	
@@ -595,7 +595,7 @@ int main()
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
 	{
 		fclose(fmom);  																				// remove the tag fmom to close the file
-		//fclose(fmarg);  																			// remove the tag fmarg to close the file
+		fclose(fmarg);  																			// remove the tag fmarg to close the file
 		//fclose(fphi);  																				// remove the tag fphi to close the file
 		//fclose(fent);  																				// remove the tag fent to close the file
 		#ifdef TwoStream																			// only do this if TwoStream was defined

@@ -103,7 +103,7 @@ extern double *fEquiVals;																			// declare f_equivals (to store the 
 #include "collisionRoutines_1.h"            														// allows generate_conv_weights, generate_conv_weights_linear, computeQ & RK4 to be used
 #include "MomentCalculations.h"																		// allows computeMass, computeMomentum, computeKiE, computeKiERatio, computeEleE to be used
 //#include "EntropyCalculations.h"																	// allows computeEntropy, computeEntropy_wAvg & computeRelEntropy to be used
-//#include "MarginalCreation.h"																		// allows PrintMarginalLoc & PrintMarginal to be used
+#include "MarginalCreation.h"																		// allows PrintMarginalLoc & PrintMarginal to be used
 //#include "EquilibriumSolution.h"																	// allows ExportRhoQuadVals, ComputeEquiVals & PrintEquiVals to be used
 #include "NegativityChecks.h"																		// allows computeCellAvg, FindNegVals & CheckNegVals to be used
 

@@ -14,6 +14,6 @@ set -x
 export OMP_NUM_THREADS=16
 #export I_MPI_DEBUG=2
 
-ibrun tacc_affinity ./bin/LPsolver_2DwHeaders_Test.out
+ibrun tacc_affinity ./bin/LPsolver_2D_MargTest.out
 
 #./fpl.out
