@@ -821,7 +821,7 @@ void ComputeQ(double *f, fftw_complex *qHat, double **conv_weights)
 
 }
 
-void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U, double *dU) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6 
+void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<double>& U_vals, double *dU) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6
 {
   int i,j,k, j1, j2, j3, k_v, k_eta, kk,l_local;  
   double Q_re, Q_im, tp0, tp2, tp3,tp4,tp5, tmp0=0., tmp2=0., tmp3=0., tmp4=0.,tmp5=0., tem;
@@ -864,7 +864,7 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U,
   ComputeQ(f1, Q3_fft, conv_weights); //collides
   conserveAllMoments(Q3_fft);                //conserves k4
 
-  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l, l_local, qHat,U, dU)   // calculate the fourth step of RK4 (still in Fourier space though?!) - reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
+  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l, l_local, qHat,U_vals, dU)   // calculate the fourth step of RK4 (still in Fourier space though?!) - reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
   for(int kt=0;kt<size_v;kt++){
     j3 = kt % Nv; j2 = ((kt-j3)/Nv) % Nv; j1 = (kt - j3 - Nv*j2)/(Nv*Nv);
     tp0=0.; tp2=0.; tp3=0.; tp4=0.; tp5=0.;
@@ -891,11 +891,11 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U,
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U[k_v*6+0] + U[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U[k_v*6+0]/4. + U[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U_vals[k_v*6+0] + U_vals[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U_vals[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U_vals[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U_vals[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U_vals[k_v*6+0]/4. + U_vals[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
     dU[(l_local*size_v + kt)*5] = 19*tp0/4. - 15*tp5;
     dU[(l_local*size_v + kt)*5+4] = 60*tp5 - 15*tp0;
@@ -994,7 +994,7 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U,
  // fftw_free(fftOut);
 
 }
-void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double **conv_weights_linear, double *U) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6 
+void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double **conv_weights_linear, vector<double>& U_vals) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6
 {
   int i,j,k, j1, j2, j3, k_v, k_eta,kk;  
   double Q_re, Q_im, tp0, tp2, tp3,tp4,tp5, tmp0=0., tmp2=0., tmp3=0., tmp4=0.,tmp5=0., tem;
@@ -1032,7 +1032,7 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double **c
   ComputeQ(f1, Q3_fft, conv_weights,conv_weights_linear); //collides
   conserveAllMoments(Q3_fft);                //conserves k4
   
-  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l,qHat,U) //reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
+  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l,qHat,U_vals) //reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
   for(int kt=0;kt<size_v;kt++){
     j3 = kt % Nv; j2 = ((kt-j3)/Nv) % Nv; j1 = (kt - j3 - Nv*j2)/(Nv*Nv);
     tp0=0.; tp2=0.; tp3=0.; tp4=0.; tp5=0.;
@@ -1059,15 +1059,15 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double **c
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U[k_v*6+0] + U[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U[k_v*6+0]/4. + U[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U_vals[k_v*6+0] + U_vals[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U_vals[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U_vals[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U_vals[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U_vals[k_v*6+0]/4. + U_vals[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
-    U[k_v*6+0] = 19*tp0/4. - 15*tp5;
-    U[k_v*6+5] = 60*tp5 - 15*tp0;
-    U[k_v*6+2] = tp2; U[k_v*6+3] = tp3; U[k_v*6+4] = tp4;      
+    U_vals[k_v*6+0] = 19*tp0/4. - 15*tp5;
+    U_vals[k_v*6+5] = 60*tp5 - 15*tp0;
+    U_vals[k_v*6+2] = tp2; U_vals[k_v*6+3] = tp3; U_vals[k_v*6+4] = tp4;
   }
 	//printf("RK4: %g, %g, %g, %g, %g\n", tmp0, tmp2, tmp3, tmp4, 0.5*tmp5);  
 }   
@@ -1158,7 +1158,7 @@ void ComputeQ(double *f, fftw_complex *qHat, double **conv_weights)
 
 }
 
-void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6 
+void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<double>& U_vals) //4-th RK. yn=yn+(3*k1+k2+k3+k4)/6
 {
   int i,j,k, j1, j2, j3, k_v, k_eta,kk;  
   double Q_re, Q_im, tp0, tp2, tp3,tp4,tp5, tmp0=0., tmp2=0., tmp3=0., tmp4=0.,tmp5=0., tem;
@@ -1230,7 +1230,7 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U)
   ComputeQ(f3, Q3_fft, conv_weights); //collides
   conserveAllMoments(Q3_fft);                //conserves k4
   */
-  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l,qHat,U) //reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
+  #pragma omp parallel for schedule(dynamic) private(j1,j2,j3,i,j,k,k_v,k_eta,kk,Q_re, Q_im, tp0, tp2,tp3,tp4, tp5) shared(l,qHat,U_vals) //reduction(+: tmp0, tmp2, tmp3, tmp4, tmp5)
   for(int kt=0;kt<size_v;kt++){
     j3 = kt % Nv; j2 = ((kt-j3)/Nv) % Nv; j1 = (kt - j3 - Nv*j2)/(Nv*Nv);
     tp0=0.; tp2=0.; tp3=0.; tp4=0.; tp5=0.;
@@ -1257,15 +1257,15 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U)
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U[k_v*6+0] + U[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U[k_v*6+0]/4. + U[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U_vals[k_v*6+0] + U_vals[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U_vals[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U_vals[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U_vals[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U_vals[k_v*6+0]/4. + U_vals[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
-    U[k_v*6+0] = 19*tp0/4. - 15*tp5;
-    U[k_v*6+5] = 60*tp5 - 15*tp0;
-    U[k_v*6+2] = tp2; U[k_v*6+3] = tp3; U[k_v*6+4] = tp4;      
+    U_vals[k_v*6+0] = 19*tp0/4. - 15*tp5;
+    U_vals[k_v*6+5] = 60*tp5 - 15*tp0;
+    U_vals[k_v*6+2] = tp2; U_vals[k_v*6+3] = tp3; U_vals[k_v*6+4] = tp4;
   }
 	//printf("RK4: %g, %g, %g, %g, %g\n", tmp0, tmp2, tmp3, tmp4, 0.5*tmp5);  
 }   

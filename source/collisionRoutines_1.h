@@ -55,11 +55,11 @@ void ProjectedNodeValue(fftw_complex *qHat, double *Q_incremental);
 	#ifdef FullandLinear
 	void ComputeQ(double *f, fftw_complex *qHat, double **conv_weights, fftw_complex *qHat_linear, double **conv_weights_linear);
 
-	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, fftw_complex *qHat_linear, double **conv_weights_linear, double *U, double *dU);
+	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, fftw_complex *qHat_linear, double **conv_weights_linear, vector<double>& U_vals, double *dU);
 	#else
 	void ComputeQ(double *f, fftw_complex *qHat, double **conv_weights);
 
-	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U, double *dU);
+	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<double>& U_vals, double *dU);
 	#endif
 #else
 	#ifdef FullandLinear
@@ -67,7 +67,7 @@ void ProjectedNodeValue(fftw_complex *qHat, double *Q_incremental);
 	#else
 	void ComputeQ(double *f, fftw_complex *qHat, double **conv_weights);
 
-	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, double *U);
+	void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<double>& U_vals);
 	#endif
 #endif  
 

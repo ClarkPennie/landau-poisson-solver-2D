@@ -22,10 +22,10 @@
 //   FUNCTION PROTOTYPES  //
 //************************//
 
-double computeEntropy(double *U);
+double computeEntropy(vector<double>& U_vals);
 
 double computeEntropy_wAvg(double *AvgVals);
 
-//double computeRelEntropy(double *U, double *f_equi);
+//double computeRelEntropy(vector<double>& U, double *f_equi);
 
 #endif /* ENTROPYCALCULATIONS_H_ */

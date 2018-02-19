@@ -22,12 +22,12 @@
 //   FUNCTION PROTOTYPES  //
 //************************//
 
-double computeCellAvg(double *U, int i, int j1, int j2, int j3);
+double computeCellAvg(vector<double>& U_vals0, int i, int j1, int j2, int j3);
 
-void FindNegVals(double *U, int *NegVals, double *AvgVals);
+void FindNegVals(vector<double>& U_vals, int *NegVals, double *AvgVals);
 
-void FindNegVals_old(double *U, int *NegVals);
+void FindNegVals_old(vector<double>& U_vals, int *NegVals);
 
-void CheckNegVals(double *U, int *NegVals, double *AvgVals);
+void CheckNegVals(int *NegVals, double *AvgVals);
 
 #endif /* NEGATIVITYCHECKS_H_ */

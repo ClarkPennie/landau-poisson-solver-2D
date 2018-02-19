@@ -8,7 +8,7 @@
 
 #include "NegativityChecks.h"																										// NegativityChecks.h is where the prototypes for the functions contained in this file are declared
 
-double computeCellAvg(double *U, int i1, int i2, int j1, int j2, int j3)															// function to calculate the average value of the approximate function f (with DG coefficients in U) on the cell I_(i1,i2) x K_(j1,j2,j3), namely (1/cell_volume)*int_(I_(i1,i2) x K_(j1,j2,j3)) f dxdv = (1/(dx*dv^3))*int_(I_i x K_(j1,j2,j3)) f dxdv
+double computeCellAvg(vector<double>& U_vals0, int i1, int i2, int j1, int j2, int j3)															// function to calculate the average value of the approximate function f (with DG coefficients in U) on the cell I_(i1,i2) x K_(j1,j2,j3), namely (1/cell_volume)*int_(I_(i1,i2) x K_(j1,j2,j3)) f dxdv = (1/(dx*dv^3))*int_(I_i x K_(j1,j2,j3)) f dxdv
 {
 	int k, nx1, nx2, nv1, nv2, nv3;																									// declare k (the location of the given cell in U), nx1, nx2 (counters for the space cell) & nv1, nv2, nv3 (counters for the velocity cell)
 	double x1_0, x2_0, v1_0, v2_0, v3_0, x1_val, x2_val, v1_val, v2_val, v3_val, f_val, avg;										// declare x1_0, x2_0, v1_0, v2_0, v3_0 (to store the values in the middle of the current cell), x1_val, x2_val, v1_val, v2_val, v3_val (to store the x & v values to be evaluated at), f_val (to store the value of the function evaluated at the current x & v values) & avg (to store the average to be returned)
@@ -36,9 +36,9 @@ double computeCellAvg(double *U, int i1, int i2, int j1, int j2, int j3)								
 					for(nv3=0;nv3<5;nv3++)																							// loop through the five quadrature points in the v3 direction of the cell
 					{
 						v3_val = v3_0 + 0.5*vt[nv3]*dv;																				// set v3_val to the nv3-th quadrature point in the cell
-						f_val = U[k*7+0] + U[k*7+1]*(x1_val-x1_0)/dx + U[k*7+2]*(x2_val-x2_0)/dx + U[k*7+3]*(v1_val-v1_0)/dv +
-								U[k*7+4]*(v2_val-v2_0)/dv + U[k*7+5]*(v3_val-v3_0)/dv +
-								U[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
+						f_val = U_vals0[k*7+0] + U_vals0[k*7+1]*(x1_val-x1_0)/dx + U_vals0[k*7+2]*(x2_val-x2_0)/dx + U_vals0[k*7+3]*(v1_val-v1_0)/dv +
+								U_vals0[k*7+4]*(v2_val-v2_0)/dv + U_vals0[k*7+5]*(v3_val-v3_0)/dv +
+								U_vals0[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
 										+((v3_val-v3_0)/dv)*((v3_val-v3_0)/dv));													// set f_val to the evaluation of the approximation at (x1_val,x2_val,v1_val,v2_val,v3_val)
 						avg += wt[nx1]*wt[nx2]*wt[nv1]*wt[nv2]*wt[nv3]*f_val;														// add f(x1_val,x2_val,v1_val,v2_val,v3_val) times the quadrature weights corresponding to the current x & v values to the current quadrature value
 					}
@@ -50,11 +50,11 @@ double computeCellAvg(double *U, int i1, int i2, int j1, int j2, int j3)								
 	}
 }
 
-void FindNegVals(double *U, int *NegVals, double *AvgVals)																			// function to find out the cells in which the approximation from U is negative on average and stores the cell locations in NegVals
+void FindNegVals(vector<double>& U_vals, int *NegVals, double *AvgVals)																			// function to find out the cells in which the approximation from U is negative on average and stores the cell locations in NegVals
 {
 	int i1, i2, j1, j2, j3, i1NNNN, i2NNN, j1NN, j2N, k, nx1, nx2, nv1, nv2, nv3;													// declare i1, i2 (the indeces of the space cell), j1, j2, j3 (the indices of the velocity cell), iNNN (to store i*Nv^3), j1NN (to store j1*Nv^2), j2N (to store j2*Nv), k (the location of the given cell in U), nx (a counter for the space cell) & nv1, nv2, nv3 (counters for the velocity cell)
 	double x_val, v1_val, v2_val, v3_val, f_avg;																					// declare x1_val, x2_val, v1_val, v2_val, v3_val (to store the x & v values to be evaluated at) & f_val (to store the value of the function evaluated at the current x & v values)
-	#pragma omp parallel for private(i1,i2,j1,j2,j3,k,i1NNNN,i2NNN,j1NN,j2N,f_avg) shared(U,NegVals,AvgVals,size_v,Nv)
+	#pragma omp parallel for private(i1,i2,j1,j2,j3,k,i1NNNN,i2NNN,j1NN,j2N,f_avg) shared(U_vals,NegVals,AvgVals,size_v,Nv)
 	for(i1=0;i1<Nx;i1++)																											// loop through the space cells in the x1 direction
 	{
 		i1NNNN = i1*Nx*size_v;																										// set i1NNNN to i1*Nx*Nv^3
@@ -71,7 +71,7 @@ void FindNegVals(double *U, int *NegVals, double *AvgVals)																			// 
 					{
 						k = i1NNNN + i2NNN + j1NN + j2N + j3;																		// set k to i1*Nx*Nv^3 + i2*Nv^3 + j1*Nv^2 + j2*Nv + j3
 						NegVals[k] = 0;																								// set NegVals[k] to 0, which assumes at first that there will be no negative values in the kth cell
-						f_avg = computeCellAvg(U,i1,i2,j1,j2,j3);																	// calculate the average value of the approximate solution in the current cell and set it to f_avg
+						f_avg = computeCellAvg(U_vals,i1,i2,j1,j2,j3);																	// calculate the average value of the approximate solution in the current cell and set it to f_avg
 						AvgVals[k] = f_avg;																							// store f_avg in AvgVals[k]
 						if(f_avg < 0)																								// check if this value was negative
 						{
@@ -84,7 +84,7 @@ void FindNegVals(double *U, int *NegVals, double *AvgVals)																			// 
 	}
 }
 
-void FindNegVals_old(double *U, int *NegVals)																						// function to find out the cells in which the approximation from U turns negative and stores the cell locations in NegVals
+void FindNegVals_old(vector<double>& U_vals, int *NegVals)																						// function to find out the cells in which the approximation from U turns negative and stores the cell locations in NegVals
 {
 	int i1, i2, j1, j2, j3, i1NNNN, i2NNN, j1NN, j2N, k, nx1, nx2, nv1, nv2, nv3;													// declare i1, i2 (the indeces of the space cell), j1, j2, j3 (the indices of the velocity cell), iNNN (to store i*Nv^3), j1NN (to store j1*Nv^2), j2N (to store j2*Nv), k (the location of the given cell in U), nx (a counter for the space cell) & nv1, nv2, nv3 (counters for the velocity cell)
 	double x1_0, x2_0, v1_0, v2_0, v3_0, x1_val, x2_val, v1_val, v2_val, v3_val, f_val;												// declare x1_0, x2_0, v1_0, v2_0, v3_0 (to store the coordinates in the middle of the current cell), x1_val, x2_val, v1_val, v2_val, v3_val (to store the x & v values to be evaluated at) & f_val (to store the value of the function evaluated at the current x & v values)
@@ -124,9 +124,9 @@ void FindNegVals_old(double *U, int *NegVals)																						// function t
 										for(nv3=0;nv3<5;nv3++)																		// loop through the five quadrature points in the v3 direction of the cell
 										{
 											v3_val = v3_0 + 0.5*vt[nv3]*dv;															// set v3_val to the nv3-th quadrature point in the cell
-											f_val = U[k*7+0] + U[k*7+1]*(x1_val-x1_0)/dx + U[k*7+2]*(x2_val-x2_0)/dx + U[k*7+3]*(v1_val-v1_0)/dv +
-													U[k*7+4]*(v2_val-v2_0)/dv + U[k*7+5]*(v3_val-v3_0)/dv +
-													U[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
+											f_val = U_vals[k*7+0] + U_vals[k*7+1]*(x1_val-x1_0)/dx + U_vals[k*7+2]*(x2_val-x2_0)/dx + U_vals[k*7+3]*(v1_val-v1_0)/dv +
+													U_vals[k*7+4]*(v2_val-v2_0)/dv + U_vals[k*7+5]*(v3_val-v3_0)/dv +
+													U_vals[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
 															+((v3_val-v3_0)/dv)*((v3_val-v3_0)/dv));								// set f_val to the evaluation of the approximation at (x1_val,x2_val,v1_val,v2_val,v3_val)
 											if(f_val < 0)																			// check if this value was negative
 											{
@@ -144,10 +144,9 @@ void FindNegVals_old(double *U, int *NegVals)																						// function t
 	}
 }
 
-void CheckNegVals(double *U, int *NegVals, double *AvgVals)																			// function to find out the cells in which the approximation from U turns negative and stores the cell locations in NegVals
+void CheckNegVals(int *NegVals, double *AvgVals)																			// function to find out the cells in which the approximation from U turns negative and stores the cell locations in NegVals
 {
 	int i1, i2, j1, j2, j3, i1NNNN, i2NNN, j1NN, j2N, k;																			// declare i1, i2 (the index of the space cell), j1, j2, j3 (the indices of the velocity cell), iNNN (to store i*Nv^3), j1NN (to store j1*Nv^2), j2N (to store j2*Nv), k (the location of the given cell in U), nx (a counter for the space cell) & nv1, nv2, nv3 (counters for the velocity cell)
-	double f_avg;																													// declare x_0, v1_0, v2_0, v3_0 (to store the coordinates in the middle of the current cell), x_val, v1_val, v2_val, v3_val (to store the x & v values to be evaluated at) & f_val (to store the value of the function evaluated at the current x & v values)
 	for(i1=0;i1<Nx;i1++)																											// loop through the space cells in the x1 direction
 	{
 		i1NNNN = i1*Nx*size_v;																										// set i1NNNN to i1*Nx*Nv^3

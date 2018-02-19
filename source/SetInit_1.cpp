@@ -57,7 +57,7 @@ double Mw(double v1, double v2, double v3)
   return retn;
 }
 
-void SetInit_LD(double *U)
+void SetInit_LD(vector<double>& U_vals)
 {
     int i, j1, j2, j3, k, m1,m2,m3,nt=5;
     double a=A_amp, c=k_wave;
@@ -91,13 +91,13 @@ void SetInit_LD(double *U)
 	      k=i*size_v + (j1*Nv*Nv + j2*Nv + j3);	
 	      tp0 = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp0/dx;
 	      tp5 = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp4/dx;
-	      U[k*7+0] = 19*tp0/4. - 15*tp5;
-	      U[k*7+6] = 60*tp5 - 15*tp0;
+	      U_vals[k*7+0] = 19*tp0/4. - 15*tp5;
+	      U_vals[k*7+6] = 60*tp5 - 15*tp0;
 
-	      U[k*7+1] = (0.5*(sin(c*Gridx(i+0.5)) + sin(c*Gridx(i-0.5))) + (cos(c*Gridx(i+0.5)) - cos(c*Gridx(i-0.5)))/(c*dx))*(a/c)*tmp0*12./dx;
-	      U[k*7+3] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp1*12/dx;
-	      U[k*7+4] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp2*12/dx;
-	      U[k*7+5] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp3*12/dx;
+	      U_vals[k*7+1] = (0.5*(sin(c*Gridx(i+0.5)) + sin(c*Gridx(i-0.5))) + (cos(c*Gridx(i+0.5)) - cos(c*Gridx(i-0.5)))/(c*dx))*(a/c)*tmp0*12./dx;
+	      U_vals[k*7+3] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp1*12/dx;
+	      U_vals[k*7+4] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp2*12/dx;
+	      U_vals[k*7+5] = (dx + (sin(c*Gridx(i+0.5)) - sin(c*Gridx(i-0.5)))*a/c)*tmp3*12/dx;
 	  }
 	}
       }
@@ -127,7 +127,7 @@ void setInit_spectral(double *U, double **f)
   }   
 }
 #else
-void setInit_spectral(double *U, double **f)
+void setInit_spectral(vector<double>& U_vals, double **f)
 {
   int i, j1, j2, j3, k, l, m ,n;  
   for(l=0;l<N;l++){
@@ -141,7 +141,7 @@ void setInit_spectral(double *U, double **f)
 		  if(j3==Nv)j3=Nv-1;
 		  for(i=0;i<Nx;i++){
 		  k=i*size_v + (j1*Nv*Nv + j2*Nv + j3); // determine in which element the Fourier nodes lie	  
-		  f[i][l*N*N+m*N+n] = U[k*7+0] + U[k*7+2]*(v[l]-Gridv((double)j1))/dv + U[k*7+4]*(v[m]-Gridv((double)j2))/dv + U[k*7+5]*(v[n]-Gridv((double)j3))/dv + U[k*7+6]*( ((v[l]-Gridv((double)j1))/dv)*((v[l]-Gridv((double)j1))/dv) + ((v[m]-Gridv((double)j2))/dv)*((v[m]-Gridv((double)j2))/dv) + ((v[n]-Gridv((double)j3))/dv)*((v[n]-Gridv((double)j3))/dv) );
+		  f[i][l*N*N+m*N+n] = U_vals[k*7+0] + U_vals[k*7+2]*(v[l]-Gridv((double)j1))/dv + U_vals[k*7+4]*(v[m]-Gridv((double)j2))/dv + U_vals[k*7+5]*(v[n]-Gridv((double)j3))/dv + U_vals[k*7+6]*( ((v[l]-Gridv((double)j1))/dv)*((v[l]-Gridv((double)j1))/dv) + ((v[m]-Gridv((double)j2))/dv)*((v[m]-Gridv((double)j2))/dv) + ((v[n]-Gridv((double)j3))/dv)*((v[n]-Gridv((double)j3))/dv) );
 		  //BUG: index was "l*N*N+m*N+n*N" !!!!!!
 		  }
         }

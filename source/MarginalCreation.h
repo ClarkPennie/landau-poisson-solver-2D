@@ -22,12 +22,12 @@
 //   FUNCTION PROTOTYPES  //
 //************************//
 
-double f_marg(double *U, int i, int j1, double x, double v1);
+double f_marg(vector<double>& U_vals0, int i, int j1, double x, double v1);
 
-double f_marg_2D(double *U, int i1, int j1, double x1, double v1);
+double f_marg_2D(vector<double>& U_vals0, int i1, int j1, double x1, double v1);
 
 void PrintMarginalLoc(FILE *margfile);
 
-void PrintMarginal(double *U, FILE *margfile);
+void PrintMarginal(vector<double>& U_vals, FILE *margfile);
 
 #endif /* MARGINALCREATION_H_ */

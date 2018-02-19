@@ -23,6 +23,9 @@
 #include <omp.h>																					// allows all OpenMP routines to be used
 #include <fftw3.h>																					// allows the Fast Fourier Transform to be used
 #include <mkl_lapack.h>
+#include <vector>
+using std::vector;
+
 
 //************************//
 //         MACROS         //
@@ -66,7 +69,8 @@ extern double **C1, **C2;																			// declare pointers to matrices C1 (
 extern double CCt[5*5], CCt_linear[2*2];															// declare matrices CCt (C*C^T, for the conservation matrix C) & CCt_linear (C*C^T, for the conservation matrix C, in the two species collision operator)
 extern double lamb[5], lamb_linear[2];																// declare the arrays lamb (to hold 5 values) & lamb_linear (to hold 2 values)
 
-extern double *U1, *Utmp, *output_buffer_vp;//, **H;												// declare pointers to U1, Utmp (both used to help store the values in U, declared later) & output_buffer_vp (a buffer used when sending the data between MPI processes during the VP method)
+extern vector<double> U1;
+extern double *Utmp, *output_buffer_vp;//, **H;														// declare pointers to Utmp (both used to help store the values in U, declared later) & output_buffer_vp (a buffer used when sending the data between MPI processes during the VP method)
 extern double *Q, *f1, *Q1, *Utmp_coll;//*f2, *f3;													// declare pointers to Q (the discretised collision operator), f1 (used to help store the solution during the collisional problem), Q1 (used in calculation of the collision operator) & Utmp_coll (used to store calculations from the RK4 method used in the collisional problem)
 extern fftw_complex *Q1_fft, *Q2_fft, *Q3_fft;														// declare pointers to the complex numbers Q1_fft, Q2_fft & Q3_fft (involved in storing the FFT of Q)
 

@@ -8,7 +8,7 @@
 
 #include "MarginalCreation.h"																	// MarginalCreation.h is where the prototypes for the functions contained in this file are declared
 
-double f_marg(double *U, int i, int j1, double x, double v1)
+double f_marg(vector<double>& U_vals0, int i, int j1, double x, double v1)
 {
 	int j2, j3, k0, j2N, k;																		// declare j2, j3 (the indices of the velocity cell in the v2 & v3 directions), k0 (to store the value of i*Nv^3 + j1_Nv^2), j2N (to store the value of j2*N) & k (the index of the cell in U)
 	double x_dif, v1_dif, retn;																	// declare x_dif (to store x - x_i), v1_dif (to store v1 - v_j1) & retn (the value of the marginal evaluated at the given x & v1 to be returned at the end
@@ -25,14 +25,14 @@ double f_marg(double *U, int i, int j1, double x, double v1)
 		for(j3=0; j3<Nv; j3++)
 		{
 			k = k0 + j2N + j3;																	// set k to i*Nv^3 + j1*Nv^2 + j2*Nv + j3
-			retn += dv*dv*U[7*k+0] + dv*dv*U[7*k+1]*x_dif/dx + dv*U[7*k+3]*v1_dif
-							+ U[7*k+6]*(v1_dif*v1_dif +dv*dv/6);								// add dv*dv*U[6*k+0] + dv*dv*U[6*k+1]*x_dif/dx + dv*U[6*k+2]*v1_dif + U[6*k+5]*(v1_dif*v1_dif +dv*dv/6) for the given j2 & j3 in the sum for retn
+			retn += dv*dv*U_vals0[7*k+0] + dv*dv*U_vals0[7*k+1]*x_dif/dx + dv*U_vals0[7*k+3]*v1_dif
+							+ U_vals0[7*k+6]*(v1_dif*v1_dif +dv*dv/6);								// add dv*dv*U[6*k+0] + dv*dv*U[6*k+1]*x_dif/dx + dv*U[6*k+2]*v1_dif + U[6*k+5]*(v1_dif*v1_dif +dv*dv/6) for the given j2 & j3 in the sum for retn
 		}
 	}
 	return retn;																				// return the value of the marginal evaluated at x & v1
 }
 
-double f_marg_2D(double *U, int i1, int j1, double x1, double v1)
+double f_marg_2D(vector<double>& U_vals0, int i1, int j1, double x1, double v1)
 {
 	int i2, j2, j3, k0, i2NNN, j2N, k;															// declare i2 (the index of the space cell in the x1 direction) j2, j3 (the indices of the velocity cell in the v2 & v3 directions), k0 (to store the value of i*Nv^3 + j1_Nv^2), i2NNN (to store the value of i2*Nv^3) j2N (to store the value of j2*Nv) & k (the index of the cell in U)
 	double x1_dif, v1_dif, retn;																	// declare x_dif (to store x - x_i), v1_dif (to store v1 - v_j1) & retn (the value of the marginal evaluated at the given x & v1 to be returned at the end
@@ -52,8 +52,8 @@ double f_marg_2D(double *U, int i1, int j1, double x1, double v1)
 			for(j3=0; j3<Nv; j3++)
 			{
 				k = k0 + i2NNN + j2N + j3;														// set k to i1*Nx*Nv^3 + i2*Nv^3 + j1*Nv^2 + j2*Nv + j3
-				retn += dx*dv*dv*U[7*k+0] + dv*dv*U[7*k+1]*x1_dif + dx*dv*U[7*k+3]*v1_dif
-						+ dx*U[7*k+6]*(v1_dif*v1_dif +dv*dv/6);								// add dv*dv*U[6*k+0] + dv*dv*U[6*k+1]*x_dif/dx + dv*U[6*k+2]*v1_dif + U[6*k+5]*(v1_dif*v1_dif +dv*dv/6) for the given j2 & j3 in the sum for retn
+				retn += dx*dv*dv*U_vals0[7*k+0] + dv*dv*U_vals0[7*k+1]*x1_dif + dx*dv*U_vals0[7*k+3]*v1_dif
+						+ dx*U_vals0[7*k+6]*(v1_dif*v1_dif +dv*dv/6);								// add dv*dv*U[6*k+0] + dv*dv*U[6*k+1]*x_dif/dx + dv*U[6*k+2]*v1_dif + U[6*k+5]*(v1_dif*v1_dif +dv*dv/6) for the given j2 & j3 in the sum for retn
 			}
 		}
 		return retn;																				// return the value of the marginal evaluated at x & v1
@@ -102,7 +102,7 @@ void PrintMarginalLoc(FILE *margfile)															// function to print the val
 	fprintf(margfile, "\n");																	// print a new line in the file tagged as fmarg
 }
 
-void PrintMarginal(double *U, FILE *margfile)													// function to print the values of the marginal in the file tagged as margfile at the given timestep
+void PrintMarginal(vector<double>& U_vals, FILE *margfile)													// function to print the values of the marginal in the file tagged as margfile at the given timestep
 {
 	int i, j1, np, nx, nv;																		// declare i (the index of the space cell),  j1 (the index of the velocity cell in the v1 direction), np (the number of points to evaluate in a given space/velocity cell), nx (a counter for the points in the space cell) & nv (a counter for the points in the velocity cell)
 	double x_0, x_val, v1_0, v1_val, fM_val, ddx, ddv;											// declare x_0 (the x value at the left edge of a given cell), x_val (the x value to be evaluated at), declare v1_0 (the v1 value at the left edge of a given cell), v1_val (the v1 value to be evaluated at), fM_val (the value of the marginal evaluated at (x_val, v1_val), ddx (the space between x values) & ddv (the space between v1 values)
@@ -123,7 +123,7 @@ void PrintMarginal(double *U, FILE *margfile)													// function to print t
 				{
 					v1_val = v1_0 + nv*ddv;														// set v1_val to v1_0 plus nv increments of width ddv
 
-					fM_val = f_marg(U, i, j1, x_val, v1_val);									// calculate the value of the marginal, evaluated at x_val & v1_val by using the function in the space cell i and velocity cell j1 in the v1 direction
+					fM_val = f_marg(U_vals, i, j1, x_val, v1_val);									// calculate the value of the marginal, evaluated at x_val & v1_val by using the function in the space cell i and velocity cell j1 in the v1 direction
 					fprintf(margfile, "%11.8g  ", fM_val);										// in the file tagged as fmarg, print the value of the marginal f_M(t, x, v1)
 				}
 			}

@@ -66,7 +66,8 @@ double **C1, **C2;																					// declare pointers to matrices C1 (the r
 double CCt[5*5], CCt_linear[2*2];																	// declare matrices CCt (C*C^T, for the conservation matrix C) & CCt_linear (C*C^T, for the conservation matrix C, in the two species collision operator)
 double lamb[5], lamb_linear[2];																		// declare the arrays lamb (to hold 5 values) & lamb_linear (to hold 2 values)
 
-double *U1, *Utmp, *output_buffer_vp;//, **H;														// declare pointers to U1, Utmp (both used to help store the values in U, declared later) & output_buffer_vp (a buffer used when sending the data between MPI processes during the VP method)
+vector<double> U1(7*size,0);
+double *Utmp, *output_buffer_vp;//, **H;														// declare pointers to U1, Utmp (both used to help store the values in U, declared later) & output_buffer_vp (a buffer used when sending the data between MPI processes during the VP method)
 double *Q, *f1, *Q1, *Utmp_coll;//*f2, *f3;															// declare pointers to Q (the discretised collision operator), f1 (used to help store the solution during the collisional problem), Q1 (used in calculation of the collision operator) & Utmp_coll (used to store calculations from the RK4 method used in the collisional problem)
 fftw_complex *Q1_fft, *Q2_fft, *Q3_fft;																// declare pointers to the complex numbers Q1_fft, Q2_fft & Q3_fft (involved in storing the FFT of Q)
 
@@ -98,7 +99,8 @@ int main()
 	int k_v, k_eta, k_local, nprocs_vlasov;															// declare k_v (the index of a DG coefficient), k_eta (the index of a DG coefficient in Fourier space), k_local (the index of a DG coefficient, local to the space chunk on the current process) & nprocs_vlasov (the number of processes used for solving the Vlasov equation)
 	double tmp, mass, a[3], KiE, EleE; //, KiEratio;												// declare tmp (the square root of electric energy), mass (the mass/density rho), a (the momentum vector J), KiE (the kinetic energy), EleE (the electric energy) & KiEratio (the ratio of kinetic energy between where f is positive and negative)
 	double ent1, l_ent1, ll_ent1; //, ent2, l_ent2, ll_ent2;										// declare ent1 (the entropy with negatives discarded), l_ent1 (log of the ent1), ll_ent1 (log of log of ent1), ent2 (the entropy with average values of f), l_ent2 (log of the ent2), ll_ent2 (log of log of ent2)
-	double *U, **f, *output_buffer;//, **conv_weights_local;										// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
+	vector<double> U(7*size, 0);																	// declare the vector U (to store the coefficients of the DG approximation to the electron pdf, where entry 7*(i1NxNv^3+i2Nv^3+j1Nv^2+j2Nv+j3)+k is the coefficient of the basis function supported on cell (i1, i2, j1, j2, j3) with shape k)
+	double **f, *output_buffer;//, **conv_weights_local;										// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
 	double **conv_weights, **conv_weights_linear;													// declare a pointer to conv_weights (a matrix of the weights for the convolution in Fourier space of single species collisions) conv_weights_linear (a matrix of convolution weights in Fourier space of two species collisions)
   
 	fftw_complex *qHat, *qHat_linear;																// declare pointers to the complex numbers qHat (the DFT of Q) & qHat_linear (the DFT of the two species colission operator Q);
@@ -156,9 +158,6 @@ int main()
 	}
 
 	nprocs_Nx = (int)((double)Nx/(double)chunk_Nx + 0.5);											// set nprocs_Nx to Nx/chunk_Nx + 0.5 and store the result as an integer
-
-	U = (double*)malloc(size*7*sizeof(double));													// allocate enough space at the pointer U for 6*size many double numbers
-	U1 = (double*)malloc(size*7*sizeof(double));													// allocate enough space at the pointer U1 for 6*size many floating point numbers
  
 	Utmp = (double*)malloc(chunksize_dg*7*sizeof(double));											// allocate enough space at the pointer Utmp for 6*chunksize_dg many floating point numbers
 	// H[i] = (double*)malloc(6*sizeof(double));}
@@ -326,7 +325,7 @@ int main()
 									buffer_phi[100], buffer_marg[100], buffer_ent[100];				// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_marg (to store the name of the file where the marginals are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_2D_MargCheck");															// store the string "non_nu002_3" in buffer_flags
+	sprintf(buffer_flags,"nu0_2D_UvectorCheck");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -451,7 +450,7 @@ int main()
 		PrintMarginal(U, fmarg);																	// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
 	}
   
-	MPI_Bcast(U, size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);   											// send the contents of U, which will be 6*size entries of datatype MPI_DOUBLE, from the process with rank 0 to all processes, using the communicator MPI_COMM_WORLD
+	MPI_Bcast(&U[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);   											// send the contents of U, which will be 6*size entries of datatype MPI_DOUBLE, from the process with rank 0 to all processes, using the communicator MPI_COMM_WORLD
 	MPI_Barrier(MPI_COMM_WORLD);																	// set an MPI barrier to ensure that all processes have reached this point before continuing
   
 	MPIt1 = MPI_Wtime();																			// set MPIt1 to the current time in the MPI process
@@ -526,7 +525,7 @@ int main()
 							MPI_COMM_WORLD);														// send the contents of Utmp_coll, which will be 5*chunk_Nx*size_v entries of datatype MPI_DOUBLE, to the process with rank 0, tagged with the rank of the current process, via the MPI_COMM_WORLD communicator
 				}
 			}
-		    MPI_Bcast(U, size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);    								// send the contents of U, from the process with rank 0, which contains 6*size entries of datatype MPI_DOUBLE, to all processes via the communicator MPI_COMM_WORLD (so that all processes have the coefficients of the DG approximation to f at the current time-step for the start of the next calculation)
+		    MPI_Bcast(&U[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);    								// send the contents of U, from the process with rank 0, which contains 6*size entries of datatype MPI_DOUBLE, to all processes via the communicator MPI_COMM_WORLD (so that all processes have the coefficients of the DG approximation to f at the current time-step for the start of the next calculation)
 		}
    
 		if(myrank_mpi==0)																			// only the process with rank 0 will do this
@@ -586,7 +585,7 @@ int main()
 	{
 		printf("time duration for %d time steps is %gs\n",nT, MPIelapsed);							// display in the output file how long it took to calculate nT time-steps
     
-		fwrite(U,sizeof(double),size*7,fu);															// write the coefficients of the DG approximation at the end, stored in U, which is 6*size entires, each of the size of a double datatype, in the file tagged as fu
+		fwrite(&U[0],sizeof(double),size*7,fu);															// write the coefficients of the DG approximation at the end, stored in U, which is 6*size entires, each of the size of a double datatype, in the file tagged as fu
 		//PrintPhiVals(U, fphi);																		// print the values of the potential in the file tagged as filephi at the given timestep
 	
 		fclose(fu);  																				// remove the tag fu to close the file
@@ -617,7 +616,7 @@ int main()
 		#endif
 	}
 	free(output_buffer_vp);																			// delete the dynamic memory allocated for output_buffer_vp
-	free(U); free(U1); free(Utmp); // free(H);														// delete the dynamic memory allocated for U, U1 & Utmp
+	free(Utmp); // free(H);																			// delete the dynamic memory allocated for & Utmp
 	free(cp); free(intE); free(intE1); free(intE2);													// delete the dynamic memory allocated for cp, intE, intE1 & inteE2
 
 	free(fNegVals); free(fAvgVals);	free (fEquiVals);												// delete the dynamic memory allocated for fNegVals, fAvgVals & fEquiVals

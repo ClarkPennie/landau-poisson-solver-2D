@@ -22,14 +22,14 @@
 //   FUNCTION PROTOTYPES  //
 //************************//
 
-double computeMass(double *U);
+double computeMass(vector<double>& U_vals);
 
-void computeMomentum(double *U, double *a);
+void computeMomentum(vector<double>& U_vals, double *a);
 
-double computeKiE(double *U);
+double computeKiE(vector<double>& U_vals);
 
-//double computeKiEratio(double *U, int *NegVals);
+//double computeKiEratio(vector<double>& U_vals, int *NegVals);
 
-double computeEleE(double *U);
+double computeEleE(vector<double>& U_vals);
 
 #endif /* MOMENTCALCULATIONS_H_ */

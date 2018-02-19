@@ -8,13 +8,13 @@
 
 #include "EntropyCalculations.h"																									// EntropyCalculations.h is where the prototypes for the functions contained in this file are declared
 
-double computeEntropy(double *U)																									// function to compute the entropy for the given approximate solution, namely \int f log(f) dx dv, over Omega_x x Omega_v
+double computeEntropy(vector<double>& U_vals)																									// function to compute the entropy for the given approximate solution, namely \int f log(f) dx dv, over Omega_x x Omega_v
 {
 	int i, j1, j2, j3, iNNN, j1NN, j2N, k, nx, nv1, nv2, nv3;																		// declare i (the index of the space cell), j1, j2, j3 (the indices of the velocity cell), iNNN (to store i*Nv^3), j1NN (to store j1*Nv^2), j2N (to store j2*Nv), k (the location of the given cell in U), nx (a counter for the space cell) & nv1, nv2, nv3 (counters for the velocity cell)
 	double x_0, v1_0, v2_0, v3_0, x_val, v1_val, v2_val, v3_val, f_val;																// declare x_0, v1_0, v2_0, v3_0 (to store the coordinates in the middle of the current cell), x_val, v1_val, v2_val, v3_val (to store the x & v values to be evaluated at) & f_val (to store the value of the function evaluated at the current x & v values)
 	double Ent;																														// declare Ent (the value of the entropy)
 	Ent = 0;																														// set Ent to 0 before any quadrature has began
-	#pragma omp parallel for private(k,i,j1,j2,j3,iNNN,j1NN,j2N,nx,nv1,nv2,nv3,x_0,v1_0,v2_0,v3_0,x_val,v1_val,v2_val,v3_val,f_val) shared(U,size_v,Nv,dv,dx,vt,wt) reduction(+:Ent)
+	#pragma omp parallel for private(k,i,j1,j2,j3,iNNN,j1NN,j2N,nx,nv1,nv2,nv3,x_0,v1_0,v2_0,v3_0,x_val,v1_val,v2_val,v3_val,f_val) shared(U_vals,size_v,Nv,dv,dx,vt,wt) reduction(+:Ent)
 	for(i=0;i<Nx;i++)																												// loop through the space cells
 	{
 		iNNN = i*size_v;																											// set iNNN to i*Nv^3
@@ -44,9 +44,9 @@ double computeEntropy(double *U)																									// function to compute 
 								for(nv3=0;nv3<5;nv3++)																				// loop through the five quadrature points in the v3 direction of the cell
 								{
 									v3_val = v3_0 + 0.5*vt[nv3]*dv;																	// set x_val to the nv3-th quadrature point in the cell
-									f_val = U[k*7+0] + U[k*7+1]*(x_val-x_0)/dx + U[k*7+3]*(v1_val-v1_0)/dv +
-											U[k*7+4]*(v2_val-v2_0)/dv + U[k*7+5]*(v3_val-v3_0)/dv +
-											U[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
+									f_val = U_vals[k*7+0] + U_vals[k*7+1]*(x_val-x_0)/dx + U_vals[k*7+3]*(v1_val-v1_0)/dv +
+											U_vals[k*7+4]*(v2_val-v2_0)/dv + U_vals[k*7+5]*(v3_val-v3_0)/dv +
+											U_vals[k*7+6]*(((v1_val-v1_0)/dv)*((v1_val-v1_0)/dv)+((v2_val-v2_0)/dv)*((v2_val-v2_0)/dv)
 													+((v3_val-v3_0)/dv)*((v3_val-v3_0)/dv));													// set f_val to the evaluation of the approximation at (x1_val,x2_val,v1_val,v2_val,v3_val)
 									if(f_val > 0)																					// only do this if f(x_val,v1_val,v2_val,v3_val) > 0 so that the log can be evaluated
 									{

@@ -34,16 +34,16 @@ double Mw(double v1, double v2, double v3);
 
 //double f_2H(double x);
 
-void SetInit_LD(double *U);
+void SetInit_LD(vector<double>& U_vals);
 
 //void SetInit_4H(double *U);
 
 //void SetInit_2H(double *U);
 
 #ifdef MPI
-void setInit_spectral(double *U, double **f);
+void setInit_spectral(vector<double>& U_vals, double **f);
 #else
-void setInit_spectral(double *U, double **f);
+void setInit_spectral(vector<double>& U_vals, double **f);
 #endif
 
 #endif /* SETINIT_1_H_ */
