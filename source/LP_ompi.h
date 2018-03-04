@@ -23,8 +23,11 @@
 #include <omp.h>																					// allows all OpenMP routines to be used
 #include <fftw3.h>																					// allows the Fast Fourier Transform to be used
 #include <mkl_lapack.h>
+#include <iostream>
 #include <vector>
 using std::vector;
+using std::cout;
+using std::endl;
 
 
 //************************//
@@ -45,6 +48,19 @@ using std::vector;
 #define First																						// define the macro First (UNCOMMENT IF RUNNING THE CODE FOR THE FIRST TIME)
 //#define Second																					// define the macro Second (UNCOMMENT IF PICKING UP DATA FROM A PREVIOUS RUN)
 
+/*POISSON SOLVER MACROS*/
+
+#define MPD 7																						// define the macro MPD (the max order of LDG scheme; e.g. p0=1,p1=1+2=3, p2=6, etc.) and set its value
+#define MGD 7																						// define the macro MGD (the max gauss point used i) and set its value
+#define NXD 51																						// define the macro NXD (the dimension of arrays in the x1 direction, where NXD > NX+1) and set its value (Jose's value: 16)
+#define NYD 51																						// define the macro NYD (the dimension of some arrays in the x2 direction, where NYD > NY+1) and set its value (Jose's value: 16)
+#define NYD2 105																					// define the macro NYD2 (the dimension of some arrays in the x2 direction) and set its value (Jose's value: 20)
+
+// dimensions for potential and related matrices
+// We must define N2XD > 2*(NX + 2) and N2YD > 2*(1 + 7*NY/6)
+#define N2XD 120																					// define the macro N2XD (the dimension of refined arrays in the x1 direction, where N2XD > 2(NX+2) and set its value (Jose's value: 44)
+#define N2YD 120																					// define the macro N2YD (the dimension of refined arrays in the x2 direction, where N2YD > 2(NY+2) and set its value (Jose's value: 44
+
 
 //************************//
 //   EXTERNAL VARIABLES   //
@@ -54,6 +70,8 @@ extern double PI;																					// declare PI and set it to M_PI (the valu
 extern int M;																						// declare M (the number of collision invarients) and set it equal to 5
 extern int Nx, Nv, nT, N; 											 								// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values
 extern int size_v, size, size_ft; 																	// declare size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
+
+extern int NX, NY, NYREAL;																			// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
 
 extern double A_amp, k_wave;																		// declare A_amp (the amplitude of the perturbing wave) & k_wave (the wave number of the perturbing wave) and set their values
 extern double Lx, Lv;																				// declare Lx (for 0 < x < Lx) and set it to & Lv (for -Lv < v < Lv in the advection problem) and set their values
@@ -84,6 +102,10 @@ extern fftw_complex *fftIn, *fftOut;																// declare pointers to the F
 
 extern double ce, *cp, *intE, *intE1, *intE2;														// declare ce and pointers to cp, intE, intE1 & intE2 (precomputed quantities for advections)
 
+extern vector<double> IE_X, IXE_X, IYE_X, IXXE_X, IXYE_X, IYYE_X;									// declare vectors to store the integrals of the field in the x direction in each space cell (see PoissonVariables.cpp for an explanation of each vector)
+extern vector<double> IE_Y, IXE_Y, IYE_Y, IXXE_Y, IXYE_Y, IYYE_Y;									// declare vectors to store the integrals of the field in the y direction in each space cell(see PoissonVariables.cpp for an explanation of each vector)
+extern vector<double> SE_X, SE_Y;																	// declare vectors to store the sign of the components of the electric field in the each space cell
+
 extern fftw_plan p_forward; 																		// declare the fftw_plan p_forward (an object which contains all the data which allows fftw3 to compute the FFT)
 extern fftw_plan p_backward; 																		// declare the fftw_plan p_backward (an object which contains all the data which allows fftw3 to compute the inverse FFT)
 extern fftw_complex *temp;																			// declare a pointer to complex number temp (a temporary array used when calculating the FFT)
@@ -110,5 +132,9 @@ extern double *fEquiVals;																			// declare f_equivals (to store the 
 #include "MarginalCreation.h"																		// allows PrintMarginalLoc & PrintMarginal to be used
 //#include "EquilibriumSolution.h"																	// allows ExportRhoQuadVals, ComputeEquiVals & PrintEquiVals to be used
 #include "NegativityChecks.h"																		// allows computeCellAvg, FindNegVals & CheckNegVals to be used
+#include "PoissonVariables.h"																		// where the global variables to be used throughout the various files are defined as external
+#include "PoissonFunctions.h"																		// allows adim, config, setup, setup_matrix, setup_pois & pois2d to be used
+#include "PoissonPrint.h"																			// allows PrintFieldLoc & PrintFieldData to be used
+
 
 #endif /* LP_OMPI_H_ */

@@ -19,8 +19,10 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=24, Nv=24, nT=10, N=16; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=24, Nv=24, nT=0, N=16; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_v=Nv*Nv*Nv, size=Nx*Nx*size_v, size_ft=N*N*N; 												// declare size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
+
+int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
 
 #ifdef TwoStream																					// only do this if TwoStream was defined
 double A_amp=0.5, k_wave=2*PI/4.;																	// declare A_amp (the amplitude of the perturbing wave) & k_wave (the wave number of the perturbing wave) and set their values
@@ -80,6 +82,14 @@ fftw_complex *fftIn, *fftOut;																		// declare pointers to the FFT va
 
 double ce, *cp, *intE, *intE1, *intE2;																// declare ce and pointers to cp, intE, intE1 & intE2 (precomputed quantities for advections)
 
+vector<double> IE_X(NX*NYREAL),
+				IXE_X(NX*NYREAL), IYE_X(NX*NYREAL),
+				IXXE_X(NX*NYREAL), IXYE_X(NX*NYREAL), IYYE_X(NX*NYREAL);							// declare vectors to store the integrals of the field in the x direction in each space cell (see PoissonVariables.cpp for an explanation of each vector)
+vector<double> IE_Y(NX*NYREAL),
+				IXE_Y(NX*NYREAL), IYE_Y(NX*NYREAL),
+				IXXE_Y(NX*NYREAL), IXYE_Y(NX*NYREAL), IYYE_Y(NX*NYREAL);							// declare vectors to store the integrals of the field in the y direction in each space cell(see PoissonVariables.cpp for an explanation of each vector)
+vector<double> SE_X(NX*NYREAL), SE_Y(NX*NYREAL);													// declare vectors to store the sign of the components of the electric field in the each space cell
+
 // SET UP FFT PLANS (WHICH ARE USED MULTIPLE TIMES):
 fftw_plan p_forward; 																				// declare the fftw_plan p_forward (an object which contains all the data which allows fftw3 to compute the FFT)
 fftw_plan p_backward; 																				// declare the fftw_plan p_backward (an object which contains all the data which allows fftw3 to compute the inverse FFT)
@@ -100,6 +110,8 @@ int main()
 	double tmp, mass, a[3], KiE, EleE; //, KiEratio;												// declare tmp (the square root of electric energy), mass (the mass/density rho), a (the momentum vector J), KiE (the kinetic energy), EleE (the electric energy) & KiEratio (the ratio of kinetic energy between where f is positive and negative)
 	double ent1, l_ent1, ll_ent1; //, ent2, l_ent2, ll_ent2;										// declare ent1 (the entropy with negatives discarded), l_ent1 (log of the ent1), ll_ent1 (log of log of ent1), ent2 (the entropy with average values of f), l_ent2 (log of the ent2), ll_ent2 (log of log of ent2)
 	vector<double> U(7*size, 0);																	// declare the vector U (to store the coefficients of the DG approximation to the electron pdf, where entry 7*(i1NxNv^3+i2Nv^3+j1Nv^2+j2Nv+j3)+k is the coefficient of the basis function supported on cell (i1, i2, j1, j2, j3) with shape k)
+	vector<double> POTC(3*NX*NYREAL);																// declare the vector POTC (to store the coefficients of the LDG approximation to the electric potential, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
+	vector<double> phix(3*NX*NYREAL,0), phiy(3*NX*NYREAL,0);											// declare the vectors phix & phiy (to store the coefficients of the LDG approximation to the electric field, in the x & y directions, respectively, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
 	double **f, *output_buffer;//, **conv_weights_local;										// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
 	double **conv_weights, **conv_weights_linear;													// declare a pointer to conv_weights (a matrix of the weights for the convolution in Fourier space of single species collisions) conv_weights_linear (a matrix of convolution weights in Fourier space of two species collisions)
   
@@ -322,19 +334,26 @@ int main()
 	}
 
 	char buffer_moment[100], buffer_u[100], buffer_ufull[100], buffer_flags[100],
-									buffer_phi[100], buffer_marg[100], buffer_ent[100];				// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_marg (to store the name of the file where the marginals are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
+			buffer_phi[100], buffer_Ex1[100], buffer_Ex2[100], buffer_margx1v1[100],
+			buffer_margx1x2[100], buffer_ent[100];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_2D_UvectorCheck");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_Test2DMarginal");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is U_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_u
 	sprintf(buffer_ufull,"Data/U2stream_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is U2stream_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_ufull
-	sprintf(buffer_marg,"Data/Marginals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
-					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	sprintf(buffer_margx1v1,"Data/Marginals_x1v1_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x1v1_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	sprintf(buffer_margx1x2,"Data/Marginals_x1x2_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x1x2_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_phi,"Data/PhiVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	sprintf(buffer_Ex1,"Data/Ex1Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	sprintf(buffer_Ex2,"Data/Ex2Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_ent,"Data/EntropyVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is EntropyVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
@@ -354,7 +373,7 @@ int main()
 		#endif
 	#endif
   
-	FILE *fmom, *fu, *fufull, *fmarg, *fent; //, *fphi;												// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg (which will store the values of the marginals), fphi (which will store the values of the potential phi) & fent (which will store the values fo the entropy)
+	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;					// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
 	{
@@ -407,13 +426,25 @@ int main()
       
 		fmom=fopen(buffer_moment,"w");																// set fmom to be a file with the name stored in buffer_moment and set the file access mode of fmom to w (which creates an empty file and allows it to be written to)
 		fu=fopen(buffer_u, "w");																	// set fu to be a file with the name stored in buffer_u and set the file access mode of fu to w (which creates an empty file and allows it to be written to)
-		fmarg=fopen(buffer_marg,"w");																// set fmarg to be a file with the name stored in buffer_marg and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
-		//fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
+		fmarg_x1v1=fopen(buffer_margx1v1,"w");														// set fmarg_x1v1 to be a file with the name stored in buffer_marg_x1v1 and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
+		fmarg_x1x2=fopen(buffer_margx1x2,"w");														// set fmarg_x1x2 to be a file with the name stored in buffer_marg_x1x2 and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
+		fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
+		fEx1=fopen(buffer_Ex1,"w");																	// set fEx1 to be a file with the name stored in buffer_Ex1 and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
+		fEx2=fopen(buffer_Ex2,"w");																	// set fEx2 to be a file with the name stored in buffer_Ex2 and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
 		fent=fopen(buffer_ent,"w");																	// set fent to be a file with the name stored in buffer_ent and set the file access mode of fent to w (which creates an empty file and allows it to be written to)
 
 		//FindNegVals(U, fNegVals, fAvgVals);															// find out in which cells the approximate solution goes negative and record it in fNegVals
 
 		//ComputeEquiVals(fEquiVals);																	// compute the values of the equilibrium solution, for use in Gaussian quadrature, and store them in f_equivals
+
+		/* SETUP THE DG FORMULATION FOR POISSON'S EQUATION */
+		adim();
+		setup();
+		config();
+		setup_pois();
+		setup_matrix();
+
+	    pois2d(U, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 
 		mass=computeMass(U);																		// set mass to the value calculated through computeMass, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
 		computeMomentum(U, a);																		// calculate the momentum for the solution f(x,v,t) at the current time t, using its DG coefficients stored U, and store it in a
@@ -446,8 +477,10 @@ int main()
 		fprintf(fufull,"\n\n");
 		#endif*/
 
-		PrintMarginalLoc(fmarg);																	// print the values of x & v1 that the marginal will be evaluated at in the file tagged as fmarg
-		PrintMarginal(U, fmarg);																	// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
+		PrintMarginalLoc(fmarg_x1v1, fmarg_x1x2);													// print the values of x1 & v1 and x1 & x2 that the marginals will be evaluated at in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
+		PrintMarginal(U, fmarg_x1v1, fmarg_x1x2);													// print the (x1,v1) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
+	    PrintFieldLoc(fphi, fEx1, fEx2);															// print the values of x1 & x2 that the potential and field will be evaluated at in the files tagged as fphi, fEx1 & fEx2
+	    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);											// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 	}
   
 	MPI_Bcast(&U[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);   											// send the contents of U, which will be 6*size entries of datatype MPI_DOUBLE, from the process with rank 0 to all processes, using the communicator MPI_COMM_WORLD
@@ -571,7 +604,8 @@ int main()
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
 			if(t%20==0)
 			{
-				PrintMarginal(U, fmarg);															// print the marginal distribution for the initial condition, using the DG coefficients in U, in the file tagged as fmarg
+				PrintMarginal(U, fmarg_x1v1, fmarg_x1x2);											// print the (x1,v1) & (x1,x2) marginal distributions, using the DG coefficients in U, in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
+			    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 			}
 		}
 	
@@ -595,8 +629,11 @@ int main()
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
 	{
 		fclose(fmom);  																				// remove the tag fmom to close the file
-		fclose(fmarg);  																			// remove the tag fmarg to close the file
-		//fclose(fphi);  																				// remove the tag fphi to close the file
+		fclose(fmarg_x1v1);  																		// remove the tag fmarg_x1v1 to close the file
+		fclose(fmarg_x1x2);  																		// remove the tag fmarg_x1x2 to close the file
+		fclose(fphi);  																				// remove the tag fphi to close the file
+		fclose(fEx1);  																				// remove the tag fphi to close the file
+		fclose(fEx2);  																				// remove the tag fphi to close the file
 		fclose(fent);  																				// remove the tag fent to close the file
 		#ifdef TwoStream																			// only do this if TwoStream was defined
 		//fclose(fufull);

@@ -5,7 +5,7 @@ OBJDIR:=$(DIR)/build
 SRCDIR:=$(DIR)/source
 
 # Files
-EXEC :=  LPsolver_2D_UvectorCheck.out 
+EXEC :=  LPsolver_2D_Test2DMarginals.out 
 SRC  :=  $(wildcard $(SRCDIR)/*.cpp) 
 OBJ  :=  $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
