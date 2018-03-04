@@ -69,7 +69,7 @@ using std::endl;
 extern double PI;																					// declare PI and set it to M_PI (the value stored in the library math.h)
 extern int M;																						// declare M (the number of collision invarients) and set it equal to 5
 extern int Nx, Nv, nT, N; 											 								// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values
-extern int size_v, size, size_ft; 																	// declare size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
+extern int size_x, size_v, size, size_ft; 															// declare size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 extern int NX, NY, NYREAL;																			// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
 
@@ -82,7 +82,7 @@ extern double nu, dt, nthread; 																		// declare nu (1/knudson#) and 
 
 extern double *v, *eta;																				// declare v (the velocity variable) & eta (the Fourier space variable)
 extern double *wtN;																					// declare wtN (the trapezoidal rule weights to be used)
-extern double scale, scale3, scaleL, scalev;														// declare scale (the 1/sqrt(2pi) factor appearing in Gaussians), scale (the 1/(sqrt(2pi))^3 factor appearing in the Maxwellian), scaleL (the volume of the velocity domain) and set it to 8Lv^3 & scalev (the volume of a discretised velocity element) and set it to dv^3
+extern double scale, scale3, scaleL, scalex, scalev;												// declare scale (the 1/sqrt(2pi) factor appearing in Gaussians), scale (the 1/(sqrt(2pi))^3 factor appearing in the Maxwellian), scaleL (the volume of the velocity domain) and set it to 8Lv^3 & scalev (the volume of a discretised velocity element) and set it to dv^3
 extern double **C1, **C2;																			// declare pointers to matrices C1 (the real part of the conservation matrix C) & C2 (the imaginary part of the conservation matrix C), CCt (of dimension 5x5) & CCt_linear (of dimension 2x2)
 extern double CCt[5*5], CCt_linear[2*2];															// declare matrices CCt (C*C^T, for the conservation matrix C) & CCt_linear (C*C^T, for the conservation matrix C, in the two species collision operator)
 extern double lamb[5], lamb_linear[2];																// declare the arrays lamb (to hold 5 values) & lamb_linear (to hold 2 values)

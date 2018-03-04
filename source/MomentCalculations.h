@@ -30,6 +30,6 @@ double computeKiE(vector<double>& U_vals);
 
 //double computeKiEratio(vector<double>& U_vals, int *NegVals);
 
-double computeEleE(vector<double>& U_vals);
+double computeEleE(vector<double>& phix_vals, vector<double>& phiy_vals);
 
 #endif /* MOMENTCALCULATIONS_H_ */

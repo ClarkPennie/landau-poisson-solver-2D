@@ -2,48 +2,51 @@
 
 double computeMass(vector<double>& U_vals)
 {
-  int k;
-  double tmp=0.;
-  #pragma omp parallel for private(k) shared(U_vals) reduction(+:tmp)
-  for(k=0;k<Nx*size_v;k++) tmp += U_vals[k*7+0] + U_vals[k*7+6]/4.;
+	int k;
+	double tmp=0.;
+	#pragma omp parallel for private(k) shared(U_vals) reduction(+:tmp)
+	for(k=0;k<size;k++)
+	{
+		tmp += U_vals[k*7+0] + U_vals[k*7+6]/4.;
+	}
 
-  return tmp*dx*scalev;
+	return tmp*dx*dx*scalev;
 }
 
 void computeMomentum(vector<double>& U_vals, double *a)
 {
-  int k, i, j,j1,j2,j3; //k=i*Nv*Nv*Nv + (j1*Nv*Nv + j2*Nv + j3);
-  double tmp1=0., tmp2=0., tmp3=0.;
-  a[0]=0.; a[1]=0.; a[2]=0.; // the three momentum
-  #pragma omp parallel for private(k,i,j,j1,j2,j3) shared(U_vals) reduction(+:tmp1, tmp2, tmp3)  //reduction directive may change the result a little bit
-  for(k=0;k<Nx*size_v;k++){
-    j=k%size_v; i=(k-j)/size_v;
-    j3=j%Nv; j2=((j-j3)%(Nv*Nv))/Nv; j1=(j-j3-j2*Nv)/(Nv*Nv);
-    tmp1 += Gridv((double)j1)*dv*U_vals[k*7+0] + U_vals[k*7+3]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j1)*dv/4.;
-    tmp2 += Gridv((double)j2)*dv*U_vals[k*7+0] + U_vals[k*7+4]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j2)*dv/4.;
-    tmp3 += Gridv((double)j3)*dv*U_vals[k*7+0] + U_vals[k*7+5]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j3)*dv/4.;
-  }
-  a[0]=tmp1*dx*dv*dv; a[1]=tmp2*dx*dv*dv; a[2]=tmp3*dx*dv*dv;
+	int k, i, j,j1,j2,j3; //k=i*Nv*Nv*Nv + (j1*Nv*Nv + j2*Nv + j3);
+	double tmp1=0., tmp2=0., tmp3=0.;
+	a[0]=0.; a[1]=0.; a[2]=0.; // the three momentum
+	#pragma omp parallel for private(k,i,j,j1,j2,j3) shared(U_vals) reduction(+:tmp1, tmp2, tmp3)  //reduction directive may change the result a little bit
+	for(k=0;k<size;k++)
+	{
+		j=k%size_v; i=(k-j)/size_v;
+		j3=j%Nv; j2=((j-j3)%(Nv*Nv))/Nv; j1=(j-j3-j2*Nv)/(Nv*Nv);
+		tmp1 += Gridv((double)j1)*dv*U_vals[k*7+0] + U_vals[k*7+3]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j1)*dv/4.;
+		tmp2 += Gridv((double)j2)*dv*U_vals[k*7+0] + U_vals[k*7+4]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j2)*dv/4.;
+		tmp3 += Gridv((double)j3)*dv*U_vals[k*7+0] + U_vals[k*7+5]*dv*dv/12. + U_vals[k*7+6]*Gridv((double)j3)*dv/4.;
+	}
+	a[0]=tmp1*dx*dx*dv*dv; a[1]=tmp2*dx*dx*dv*dv; a[2]=tmp3*dx*dx*dv*dv;
 }
 
 double computeKiE(vector<double>& U_vals)
 {
-  int k, i, j,j1,j2,j3;
-  double tmp=0., tp=0., tp1=0.;
-  //#pragma omp parallel for private(k,i,j,j1,j2,j3,tp, tp1) shared(U_vals) reduction(+:tmp)
-  for(k=0;k<Nx*size_v;k++){
-    j=k%size_v; i=(k-j)/size_v;
-    j3=j%Nv; j2=((j-j3)%(Nv*Nv))/Nv; j1=(j-j3-j2*Nv)/(Nv*Nv);
-    //tp = ( pow(Gridv(j1+0.5), 3)- pow(Gridv(j1-0.5), 3) + pow(Gridv(j2+0.5), 3)- pow(Gridv(j2-0.5), 3) + pow(Gridv(j3+0.5), 3)- pow(Gridv(j3-0.5), 3) )/3.;
-    tp1 = Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3);
-    //tmp += U[k][0]*tp + (Gridv(j1)*U[k][2]+Gridv(j2)*U[k][3]+Gridv(j3)*U[k][4])*dv*dv/6. + U[k][5]*( dv*(dv*dv*3./80. + tp1/12.) + tp/6. );
-    tmp += U_vals[k*7+0]*(tp1 + dv*dv/4.)*dv + (Gridv(j1)*U_vals[k*7+3]+Gridv(j2)*U_vals[k*7+4]+Gridv(j3)*U_vals[k*7+5])*dv*dv/6. + U_vals[k*7+6]*( dv*dv*dv*19./240. + tp1*dv/4.);
-  }
-  tmp *= dx*dv*dv;
-  return 0.5*tmp;
+	int k, i, j,j1,j2,j3;
+	double tmp=0., tp=0., tp1=0.;
+	//#pragma omp parallel for private(k,i,j,j1,j2,j3,tp, tp1) shared(U_vals) reduction(+:tmp)
+	for(k=0;k<Nx*size_v;k++)
+	{
+		j=k%size_v; i=(k-j)/size_v;
+		j3=j%Nv; j2=((j-j3)%(Nv*Nv))/Nv; j1=(j-j3-j2*Nv)/(Nv*Nv);
+		tp1 = Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3);
+		tmp += U_vals[k*7+0]*(tp1 + dv*dv/4.)*dv + (Gridv(j1)*U_vals[k*7+3]+Gridv(j2)*U_vals[k*7+4]+Gridv(j3)*U_vals[k*7+5])*dv*dv/6. + U_vals[k*7+6]*( dv*dv*dv*19./240. + tp1*dv/4.);
+	}
+	tmp *= dx*dx*dv*dv;
+	return 0.5*tmp;
 }
 
-double computeEleE(vector<double>& U_vals)
+double computeEleE_1D(vector<double>& U_vals)
 {
   int k, i, j;
   double retn, tmp1=0., tmp2=0., tmp3=0., tmp4=0., tmp5=0., tmp6=0., tmp7=0., tp1, tp2, c;
@@ -72,4 +75,17 @@ double computeEleE(vector<double>& U_vals)
   }
   retn = tmp1 + tmp2 + tmp3 + 2*ce1*tmp4 - 2*tmp5 + tmp6;
   return 0.5*retn;
+}
+
+double computeEleE(vector<double>& phix_vals, vector<double>& phiy_vals)							// function to compute the electric energy (EleE = 0.5*\int_{Omega_x} |E(x,t)|^2 dx) using the coefficients of the field stored in phix_vals & phiy_vals
+{
+	double energy = 0;																				// initialise the energy at 0
+	for(int k=0; k<size_x; k++)																		// loop through each space cell
+	{
+		energy += phix_vals[3*k]*phix_vals[3*k] + phiy_vals[3*k]*phiy_vals[3*k];					// add the contribution from integrating the constant basis function on the current cell
+		energy += (phix_vals[3*k+1]*phix_vals[3*k+1] + phiy_vals[3*k+1]*phiy_vals[3*k+1])/12;		// add the contribution from integrating the basis function linear in x1 on the current cell
+		energy += (phix_vals[3*k+2]*phix_vals[3*k+2] + phiy_vals[3*k+2]*phiy_vals[3*k+2])/12;		// add the contribution from integrating the basis function linear in x2 on the current cell
+	}
+	energy = 0.5*scalex*energy;																		// multiply the sum by 0.5 as well as dx^2 for the volume of each cell
+	return energy;																					// return the value of the energy calculated
 }
