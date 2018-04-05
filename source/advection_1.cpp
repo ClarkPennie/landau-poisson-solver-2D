@@ -170,7 +170,7 @@ double Int_E1st(vector<double>& U, int i) // \int_i E*(x-x_i)/delta_x dx
 	return result;
 }
 
-double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element I_i * K_j
+double Int_fE_1DE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element I_i * K_j
 {
 	double retn=0.;
 	int k;
@@ -181,7 +181,15 @@ double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element 
 	return retn*scalev;
 }
 
+double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element I_i * K_j
+{
+	double retn=0.;
+	int k;
+	k = i*size_v + j;
 
+	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];
+	return retn*scalev;
+}
 
 double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 {
@@ -232,8 +240,10 @@ double I2(vector<double>& U_vals0, int k, int l) // Calculate the fourth integra
   i2 = i_mod%Nx;																							// calculate i2 for the given k
   i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
 
-  if(l==3) result = Int_fE(U_vals0,i2,j_mod)/dv;
-  else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i2]/6.;
+//1D E  if(l==3) result = Int_fE_1DE(U_vals0,i2,j_mod)/dv;
+//1D E  else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i2]/6.;
+  if(l==3) result = Int_fE(U_vals0,i_mod,j_mod)/dv;
+  else if(l==6) result = U_vals0[k*7+3]*dv*dv*IE_X[i_mod]/6.;
   else result = 0.;
   
   return result;
@@ -253,19 +263,23 @@ double I3(vector<double>& U_vals0, int k, int l) 																			// Calculate
 
 	if(j1<Nv/2)																								// do this if j1 < Nv/2 (so that the velocity in the v1 direction is negative)
 	{
-		iir=i2+1; iil=i2; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
+//		iir=i2+1; iil=i2; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
+		iir=i1+1; iil=i1; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
 		if(iir==Nx)iir=0; //periodic bc																		// if iir = Nx (the maximum value that can be obtained, since i = 0,1,...,Nx-1) and so this cell is at the right boundary, requiring information from the non-existent cell with space index Nx, since there are periodic boundary conditions, set iir = 0 and use the cell with space index 0 (i.e. the cell at the left boundary)
-		kkr=i1*Nx*size_v + iir*size_v + j_mod; 																// calculate the value of kkr for this value of iir
+//		kkr=i1*Nx*size_v + iir*size_v + j_mod; 																// calculate the value of kkr for this value of iir
+		kkr=iir*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkr for this value of iir
 		kkl=k;																								// set kkl to k (since iil = i2)
 		ur = -U_vals0[kkr*7+1]; 																					// set ur to the negative of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^+ at the right boundary and -ve since v_1 < 0 in here)
 		ul = -U_vals0[kkl*7+1];																					// set ul to the negative of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkl	(which corresponds to the evaluation of gh^+ at the left boundary and -ve since phi < 0 here)
 	}
 	else																									// do this if j1 >= Nv/2 (so that the velocity in the v1 direction is non-negative)
 	{
-		iir=i2; iil=i2-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
+//		iir=i2; iil=i2-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
+		iir=i1; iil=i1-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
 		if(iil==-1)iil=Nx-1; // periodic bc																	// if iil = -1 (the minimum value that can be obtained, since i = 0,1,...,Nx-1) and so this cell is at the left boundary, requiring information from the non-existent cell with space index -1, since there are periodic boundary conditions, set iil = Nx-1 and use the cell with space index Nx-1 (i.e. the cell at the right boundary)
 		kkr=k; 																								// set kkr to k (since iir = i1)
-		kkl=i1*Nx*size_v + iil*size_v + j_mod; 																// calculate the value of kkl for this value of iil
+//		kkl=i1*Nx*size_v + iil*size_v + j_mod; 																// calculate the value of kkl for this value of iil
+		kkl=iil*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkl for this value of iil
 		ur = U_vals0[kkr*7+1];																					// set ur to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^- at the right boundary and +ve since v_1 >= 0 in here)
 		ul = U_vals0[kkl*7+1];																					// set ul to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkl (which corresponds to the evalutaion of gh^- at the left boundary and +ve since v_r >= 0 in here)
 	}
@@ -294,7 +308,7 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 
 	//intE = Int_E(U,i); intE1 = Int_E1st(U,i); intE2 = Int_E2nd(U,i);
   
-	if(intE[i2]>0)																					// do this if the average direction of the field E over the space cell i is positive
+	if(IE_X[i_mod]>0)																					// do this if the average direction of the field E over the space cell i is positive
 	{
 		j1r=j1+1;  j1l=j1;																			// set j1r to the value of j1+1 and j1l to the value of j1 (as here the the average flow of the field is from left to right so that gh^- must be used at the cell edges, as information flows against the field)
 		kkr=i_mod*size_v + (j1r*Nv*Nv + j2*Nv + j3);													// calculate the value of kkr for this value of j1r
@@ -311,6 +325,7 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		if(j1l>-1)ul = U_vals0[kkl*7+3];																	// if j1l is not -1 (so that this cell is not receiving information from the left boundary), set ul to the coefficient of the basis function with shape 2 which is non-zero in the cell with global index kkl (which corresponds to the evaluation of gh^+ at the left boundary and +ve since phi < 0 here and being subtracted?) - note that if the cell was receiving information from the left boundary then gh^+ = 0 here so ul is not needed
 	}
 
+	/* 1D E
 	if(l==0)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	{
 		if(j1r<Nv && j1l>-1) result = dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*intE[i2] + dv*dv*(U_vals0[kkr*7+1]-U_vals0[kkl*7+1])*intE1[i2];		// this is the value at an interior cell
@@ -347,6 +362,44 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*intE[i2] + U_vals0[kkr*7+1]*intE1[i2]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
 		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*intE[i2] + U_vals0[kkl*7+1]*intE1[i2]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
 	}
+	*/
+
+	if(l==0)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1) result = dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] + dv*dv*(U_vals0[kkr*7+1]-U_vals0[kkl*7+1])*IXE_X[i_mod];		// this is the value at an interior cell
+		else if(j1r<Nv)result =   dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.)*IE_X[i_mod] + dv*dv*U_vals0[kkr*7+1]*IXE_X[i_mod];																	// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result = dv*dv*(- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] - dv*dv*U_vals0[kkl*7+1]*IXE_X[i_mod];																	// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
+	if(l==1)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 1 (i.e. linear in x) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1) result = dv*dv*( (U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12. - U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IXE_X[i_mod] + (U_vals0[kkr*7+1] - U_vals0[kkl*7+1])*IXXE_X[i_mod] );		// this is the value at an interior cell
+		else if(j1r<Nv)result=dv*dv*( (U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.)*IXE_X[i_mod] + U_vals0[kkr*7+1]*IXXE_X[i_mod] );																		// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result=dv*dv*( (- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IXE_X[i_mod] - U_vals0[kkl*7+1]*IXXE_X[i_mod] );																		// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
+	if(l==3)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 2 (i.e. linear in v1) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1)result = 0.5*(dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.+ U_vals0[kkl*7+0] + 0.5*ul + U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] + dv*dv*(U_vals0[kkr*7+1]+U_vals0[kkl*7+1])*IXE_X[i_mod]);	// this is the value at an interior cell
+		else if(j1r<Nv)result = 0.5*(dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.)*IE_X[i_mod] + dv*dv*U_vals0[kkr*7+1]*IXE_X[i_mod]);																// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result = 0.5*(dv*dv*(U_vals0[kkl*7+0] + 0.5*ul + U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] + dv*dv*U_vals0[kkl*7+1]*IXE_X[i_mod]);    															// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
+	if(l==4)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 3 (i.e. linear in v2) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1)result = (U_vals0[kkr*7+4]-U_vals0[kkl*7+4])*IE_X[i_mod]*dv*dv/12.;						// this is the value at an interior cell
+		else if(j1r<Nv)result = U_vals0[kkr*7+4]*IE_X[i_mod]*dv*dv/12.;										// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result = -U_vals0[kkl*7+4]*IE_X[i_mod]*dv*dv/12.;										// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
+	if(l==5)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 4 (i.e. linear in v3) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1)result = (U_vals0[kkr*7+5]-U_vals0[kkl*7+5])*IE_X[i_mod]*dv*dv/12.;						// this is the value at an interior cell
+		else if(j1r<Nv)result=U_vals0[kkr*7+5]*IE_X[i_mod]*dv*dv/12.;											// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result=-U_vals0[kkl*7+5]*IE_X[i_mod]*dv*dv/12.;										// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
+	if(l==6)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 5 (i.e. the modulus of v) which is non-zero in the cell with global index k
+	{
+		if(j1r<Nv && j1l>-1)result = dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur - U_vals0[kkl*7+0] - 0.5*ul)*5./12. + (U_vals0[kkr*7+6]- U_vals0[kkl*7+6])*133./720.)*IE_X[i_mod] + (U_vals0[kkr*7+1] - U_vals0[kkl*7+1])*IXE_X[i_mod]*5./12. ); //BUG: coefficient of U[k][5] was 11/48 insteadof 133/720		// this is the value at an interior cell
+		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkr*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
+		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkl*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
+	}
 
   	return result;
 }
@@ -372,13 +425,14 @@ void computeH(double *H, double *U)// H_k(i,j)(f, E, phi_l)  					// MAY NEVER B
 }
 */
 
-void RK3(vector<double>& U_vals) // RK3 for f_t = H(f)
+void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vector<double>& phiy) // RK3 for f_t = H(f)
 {
   int i, k, l, k_local;
   double tp0, tp1, tp2, tp3, tp4, tp5, H[7];//, tp0, tp5, tmp1, tmp2, tmp3, tmp5;
  
   MPI_Status status;
   
+  /* 1D E
   ce = computePhi_x_0(U_vals);
 
   #pragma omp parallel for private(i) shared(U_vals,cp, intE, intE1)
@@ -390,6 +444,9 @@ void RK3(vector<double>& U_vals) // RK3 for f_t = H(f)
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U_vals,i); // BUG: Int_E2nd() require knowldege of cp
   }
+  */
+
+  pois2d(U_vals, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 
   #pragma omp parallel for schedule(dynamic)  private(H,k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5) shared(U_vals, Utmp)
   for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){
@@ -433,6 +490,7 @@ void RK3(vector<double>& U_vals) // RK3 for f_t = H(f)
 
   /////////////////// 1st step of RK3 done//////////////////////////////////////////////////////// 
     
+  /* 1D E
   ce = computePhi_x_0(U1); 
 
   #pragma omp parallel for private(i) shared(U1,cp, intE, intE1)
@@ -444,8 +502,11 @@ void RK3(vector<double>& U_vals) // RK3 for f_t = H(f)
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U1,i); // BUG: Int_E2nd() require knowldege of cp 
   }
+  */
 
-  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U_vals,Utmp)
+  pois2d(U1, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U1, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
+
+  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U1,Utmp)
   for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){      
     k_local = k%chunksize_dg;
     
@@ -485,7 +546,8 @@ void RK3(vector<double>& U_vals) // RK3 for f_t = H(f)
   MPI_Barrier(MPI_COMM_WORLD);
   /////////////////// 2nd step of RK3 done//////////////////////////////////////////////////////// 
    
-ce = computePhi_x_0(U1); 
+  /* 1D E
+  ce = computePhi_x_0(U1);
 
   #pragma omp parallel for private(i) shared(U1,cp, intE, intE1)
   for(i=0;i<Nx;i++){
@@ -496,8 +558,11 @@ ce = computePhi_x_0(U1);
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U1,i); // BUG: Int_E2nd() require knowldege of cp 
   }
+  */
   
-  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U_vals,Utmp)
+  pois2d(U1, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
+
+  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U1,Utmp)
   for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){      
     k_local = k%chunksize_dg;
   

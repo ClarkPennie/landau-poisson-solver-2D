@@ -53,7 +53,7 @@ double Int_E(vector<double>& U, int i);
 
 double Int_E1st(vector<double>& U, int i);
 
-double Int_fE(vector<double>& U, int i, int j);
+double Int_fE(vector<double>& U, int i_mod, int j);
 
 double Int_E2nd(vector<double>& U, int i);
 
@@ -67,6 +67,6 @@ double I5(vector<double>& U_vals0, int k, int l);
 
 void computeH(double *U);
 
-void RK3(vector<double>& U_vals);
+void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vector<double>& phiy);
 
 #endif /* ADVECTION_1_H_ */

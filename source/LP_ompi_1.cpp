@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=24, Nv=24, nT=0, N=16; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=24, Nv=24, nT=100, N=16; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -30,7 +30,7 @@ double Lx=4., Lv=5.25;																				// declare Lx (for 0 < x < Lx) and set
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0.1, dt=0.004, nthread=16; 																// declare nu (1/knudson#) and set it to 0.1, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0.1, dt=0.004; //, nthread=16; 																// declare nu (1/knudson#) and set it to 0.1, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef Damping																						// only do this if Damping was defined
@@ -39,7 +39,7 @@ double Lx=2*PI/k_wave, Lv=5.25;																		// declare Lx (for 0 < x < Lx) 
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0, dt=0.01, nthread=16; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0, dt=0.01; //, nthread=32; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef FourHump																						// only do this if FourHump was defined
@@ -48,7 +48,7 @@ double Lx=2*PI/k_wave, Lv=5.25;																		// declare Lx (for 0 < x < Lx) 
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0.05, dt=0.01, nthread=16; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0.05, dt=0.01; //, nthread=16; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef TwoHump																						// only do this if TwoHump was defined
@@ -57,7 +57,7 @@ double Lx=2*PI/k_wave, Lv=5.25;																		// declare Lx (for 0 < x < Lx) 
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0.05, dt=0.01, nthread=16; 																// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0.05, dt=0.01; //, nthread=16; 																// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 // There is not much need for storing double; use float to save space, esp for collision weights.
@@ -128,6 +128,10 @@ int main()
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank_mpi);														// store the rank of the current process in the MPI_COMM_WORLD communicator in myrank_mpi
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs_mpi);														// store the total number of processes running in the MPI_COMM_WORLD communicator in nprocs_mpi
   
+	int nthread;																					// declare nthread (the number of OpenMP threads)
+	nthread = omp_get_max_threads();																// set nthread to the value of the environment variable OMP_NUM_THREADS by calling the OpenMP function omp_get_max_threads
+
+
 	// CHECK THE LEVEL OF THREAD SUPPORT:
 	if (provided < required)																		// only do this if the required thread support was not possible
 	{
@@ -162,11 +166,13 @@ int main()
 
 	if(Nx%nprocs_mpi == 0)
 	{
-		chunk_Nx = Nx/nprocs_mpi;																	// if nprocs_mpi divides into Nx, set chunk_Nx to Nx/nprocs_mpi
+//		chunk_Nx = Nx/nprocs_mpi;																	// if nprocs_mpi divides into Nx, set chunk_Nx to Nx/nprocs_mpi
+		chunk_Nx = size_x/nprocs_mpi;																	// if nprocs_mpi divides into Nx, set chunk_Nx to Nx/nprocs_mpi
 	}
 	else
 	{
-		chunk_Nx = Nx/nprocs_mpi + 1;																// if nprocs_mpi does not divide into Nx, set chunk_Nx to Nx/nprocs_mpi + 1
+//		chunk_Nx = Nx/nprocs_mpi + 1;																// if nprocs_mpi does not divide into Nx, set chunk_Nx to Nx/nprocs_mpi + 1
+		chunk_Nx = size_x/nprocs_mpi + 1;																// if nprocs_mpi does not divide into Nx, set chunk_Nx to Nx/nprocs_mpi + 1
 	}
 
 	nprocs_Nx = (int)((double)Nx/(double)chunk_Nx + 0.5);											// set nprocs_Nx to Nx/chunk_Nx + 0.5 and store the result as an integer
@@ -333,12 +339,12 @@ int main()
 		MPI_Barrier(MPI_COMM_WORLD);																// set an MPI barrier to ensure that all processes have reached this point before continuing
 	}
 
-	char buffer_moment[100], buffer_u[100], buffer_ufull[100], buffer_flags[100],
-			buffer_phi[100], buffer_Ex1[100], buffer_Ex2[100], buffer_margx1v1[100],
-			buffer_margx1x2[100], buffer_ent[100];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
+	char buffer_moment[120], buffer_u[120], buffer_ufull[120], buffer_flags[100],
+			buffer_phi[120], buffer_Ex1[120], buffer_Ex2[120], buffer_margx1v1[120],
+			buffer_margx1x2[120], buffer_ent[120];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_Test2DMarginal");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_Test2DPoisRK3_i1");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -372,7 +378,14 @@ int main()
 		SetInit_2H(U);																				// set initial DG solution with the 2Hump IC. For the first time run t=0, use this to give init solution (otherwise, comment out)
 		#endif
 	#endif
-  
+
+	/* SETUP THE DG FORMULATION FOR POISSON'S EQUATION */
+	adim();
+	setup();
+	config();
+	setup_pois();
+	setup_matrix();
+
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;					// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
@@ -437,13 +450,6 @@ int main()
 
 		//ComputeEquiVals(fEquiVals);																	// compute the values of the equilibrium solution, for use in Gaussian quadrature, and store them in f_equivals
 
-		/* SETUP THE DG FORMULATION FOR POISSON'S EQUATION */
-		adim();
-		setup();
-		config();
-		setup_pois();
-		setup_matrix();
-
 	    pois2d(U, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 
 		mass=computeMass(U);																		// set mass to the value calculated through computeMass, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
@@ -489,7 +495,7 @@ int main()
 	MPIt1 = MPI_Wtime();																			// set MPIt1 to the current time in the MPI process
 	while(t < nT) 																					// if t < nT (i.e. not yet reached the final timestep), perform time-splitting to first advect the particle through the collisionless step and then perform one space homogeneous collisional step)
 	{
-		RK3(U); 																					// Use RK3 to perform one timestep of the collisionless problem
+		RK3(U, POTC, phix, phiy);																	// Use RK3 to perform one timestep of the collisionless problem
 
 		if(nu > 0.)
 		{

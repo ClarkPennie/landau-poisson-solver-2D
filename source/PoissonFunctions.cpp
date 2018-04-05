@@ -71,9 +71,12 @@ void adim(void)
 	CDOS = ceos;
 
 	// print data
-	cout << "characteristic length = " << lcar << endl;
-	cout << "parameter for the charge density = " << PD << endl;
-	cout << "the parameter of Poisson equation = " << PEP << endl;
+	if (myrank_mpi == 0)
+	{
+		cout << "characteristic length = " << lcar << endl;
+		cout << "parameter for the charge density = " << PD << endl;
+		cout << "the parameter of Poisson equation = " << PEP << endl;
+	}
 
 	// .. also in a file
 	/*
@@ -92,23 +95,26 @@ void setup(void)
 
 	NYREAL=NY;		// *7/6;
 
-	cout << "number of cells in x direction = " << NX << endl;
-	if((NX+2) > NXD)
+	if (myrank_mpi == 0)
 	{
-		cout << "number of cells in x direction >= " << NXD << endl;
-		er = 1;
-	}
-	cout << "number of cells in y direction = " << NY << endl;
-	if((NY+2) > NYD)
-	{
-		cout << "number of cells in y direction >= " << NYD << endl;
-		er = 2;
-	}
+		cout << "number of cells in x direction = " << NX << endl;
+		if((NX+2) > NXD)
+		{
+			cout << "number of cells in x direction >= " << NXD << endl;
+			er = 1;
+		}
+		cout << "number of cells in y direction = " << NY << endl;
+		if((NY+2) > NYD)
+		{
+			cout << "number of cells in y direction >= " << NYD << endl;
+			er = 2;
+		}
 
-	if(er>0)
-	{
-		cout << "error = " << er << " in setup" << endl;
-		exit(1);
+		if(er>0)
+		{
+			cout << "error = " << er << " in setup" << endl;
+			exit(1);
+		}
 	}
 }
 
@@ -1427,18 +1433,18 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			IYYE_Y[i][j] = phiy[0][i][j]/3.;
 			*/
 			IE_X[ii] = phix[3*ii];
-			IXE_X[ii] = phix[3*ii+1]/6.;
-			IYE_X[ii] = phix[3*ii+2]/6.;
-			IXXE_X[ii] =phix[3*ii]/3.;
+			IXE_X[ii] = phix[3*ii+1]/12.;
+			IYE_X[ii] = phix[3*ii+2]/12.;
+			IXXE_X[ii] =phix[3*ii]/12.;
 			IXYE_X[ii] = 0.;
-			IYYE_X[ii] = phix[3*ii]/3.;
+			IYYE_X[ii] = phix[3*ii]/12.;
 
 			IE_Y[ii] = phiy[3*ii];
-			IXE_Y[ii] = phiy[3*ii+1]/6.;
-			IYE_Y[ii] = phiy[3*ii+2]/6.;
-			IXXE_Y[ii] = phiy[3*ii]/3.;
+			IXE_Y[ii] = phiy[3*ii+1]/12.;
+			IYE_Y[ii] = phiy[3*ii+2]/12.;
+			IXXE_Y[ii] = phiy[3*ii]/12.;
 			IXYE_Y[ii] = 0.;
-			IYYE_Y[ii] = phiy[3*ii]/3.;
+			IYYE_Y[ii] = phiy[3*ii]/12.;
 
 			// the sign of the components of the electric field in the cells
 			if(IE_X[ii]>0.)
