@@ -1357,7 +1357,14 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 		for(jy=1;jy<=NYREAL;jy++)
 		{
 			ii = (ix-1)*NX + jy-1;
-			ii_l = (ix-1)*NX + jy-2;
+			if(jy > 1) // May be necessary when jy = 1 as then ii_l < 0
+			{
+				ii_l = (ix-1)*NX + jy-2;
+			}
+			else
+			{
+				ii_l = ii;
+			}
 			for(k=0;k<=mpto;k++)
 			{
 				phiy[3*ii+k]=0.;

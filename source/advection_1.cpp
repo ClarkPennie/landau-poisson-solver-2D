@@ -185,7 +185,7 @@ double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element 
 {
 	double retn=0.;
 	int k;
-	k = i*Nx*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j (choose i2 = 0 as should be same for all i2 in 1D)
+	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j (choose i2 = 0 as should be same for all i2 in 1D)
 
 	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];
 	return retn*scalev;
@@ -240,10 +240,10 @@ double I2(vector<double>& U_vals0, int k, int l) // Calculate the fourth integra
   i2 = i_mod%Nx;																							// calculate i2 for the given k
   i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
 
-  if(l==3) result = Int_fE_1DE(U_vals0,i1,j_mod)/dv;	//1D E
-  else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i1]/6.;	//1D E
-  // if(l==3) result = Int_fE(U_vals0,i_mod,j_mod)/dv;	//2D E
-  // else if(l==6) result = U_vals0[k*7+3]*dv*dv*IE_X[i_mod]/6.;	//2D E
+  //if(l==3) result = Int_fE_1DE(U_vals0,i1,j_mod)/dv;	//1D E
+  //else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i1]/6.;	//1D E
+  if(l==3) result = Int_fE(U_vals0,i_mod,j_mod)/dv;	//2D E
+  else if(l==6) result = U_vals0[k*7+3]*dv*dv*IE_X[i_mod]/6.;	//2D E
   else result = 0.;
   
   return result;
@@ -306,8 +306,8 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 	i2 = i_mod%Nx;																					// calculate i2 for the given k
 	i1 = (i_mod - i2)/Nx;																			// calculate i1 for the given k
   
-	//if(IE_X[i_mod]>0)	//2D E																					// do this if the average direction of the field E over the space cell i is positive
-	if(intE[i1] > 0)	//1D E
+	if(IE_X[i_mod]>0)	//2D E																					// do this if the average direction of the field E over the space cell i is positive
+	//if(intE[i1] > 0)	//1D E
 	{
 		j1r=j1+1;  j1l=j1;																			// set j1r to the value of j1+1 and j1l to the value of j1 (as here the the average flow of the field is from left to right so that gh^- must be used at the cell edges, as information flows against the field)
 		kkr=i_mod*size_v + (j1r*Nv*Nv + j2*Nv + j3);													// calculate the value of kkr for this value of j1r
@@ -324,7 +324,7 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		if(j1l>-1)ul = U_vals0[kkl*7+3];																	// if j1l is not -1 (so that this cell is not receiving information from the left boundary), set ul to the coefficient of the basis function with shape 2 which is non-zero in the cell with global index kkl (which corresponds to the evaluation of gh^+ at the left boundary and +ve since phi < 0 here and being subtracted?) - note that if the cell was receiving information from the left boundary then gh^+ = 0 here so ul is not needed
 	}
 
-
+	/* 1D E
 	if(l==0)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	{
 		if(j1r<Nv && j1l>-1) result = dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*intE[i1] + dv*dv*(U_vals0[kkr*7+1]-U_vals0[kkl*7+1])*intE1[i1];		// this is the value at an interior cell
@@ -361,8 +361,9 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*intE[i1] + U_vals0[kkr*7+1]*intE1[i1]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
 		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*intE[i1] + U_vals0[kkl*7+1]*intE1[i1]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
 	}
+	*/
 
-	/* 2D E
+	/* 2D E */
 	if(l==0)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	{
 		if(j1r<Nv && j1l>-1) result = dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] + dv*dv*(U_vals0[kkr*7+1]-U_vals0[kkl*7+1])*IXE_X[i_mod];		// this is the value at an interior cell
@@ -399,7 +400,6 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkr*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
 		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkl*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
 	}
-	*/
 
   	return result;
 }

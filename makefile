@@ -5,7 +5,7 @@ OBJDIR:=$(DIR)/build
 SRCDIR:=$(DIR)/source
 
 # Files
-EXEC :=  LPsolver_2D_Test2D_New2DE_i2toi1.out 
+EXEC :=  LPsolver_2D_Test2DPois_NewBC.out 
 SRC  :=  $(wildcard $(SRCDIR)/*.cpp) 
 OBJ  :=  $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
@@ -16,7 +16,7 @@ CC=icc
 CPP=icpc
 
 # Intel MPI compiler for C++
-MPICC=mpicxx #-g #-p					# Add -g -p for profiling
+MPICC=mpicxx -g -p					# Add -g -p for profiling
 
 # Compiler flags: crashed when compiling with -O0
 CFLAGS = -O2 -ipo -qopenmp  -I$(TACC_FFTW3_INC) -I$(TACC_MKL_INC) -I$(SRCDIR)
