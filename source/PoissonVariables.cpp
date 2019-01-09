@@ -47,6 +47,7 @@ and
 //int NX,NY,mppois,mpto,ldab;
 int mppois,mpto,ldab;
 double xa,xb,xc,xd,ya,yb,pleft,pbot,pright,ptop;
+double pybc; // DEBUG Fix y boundary conditions
 
 //sub and super band for the big linear system, defined in setup
 int nsub,nsuper;

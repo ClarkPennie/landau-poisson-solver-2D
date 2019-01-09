@@ -1100,6 +1100,13 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     //for every cell, the integral of rhs times test function
     for(ix=1;ix<=NX;ix++)
     {
+    	pybc = POT[ix][1];	 // DEBUG Fix y boundary conditions
+    	/*
+    	if(myrank_mpi==0)
+    	{
+    		printf("ix = %d: pybc = %g; ", ix, pybc);
+    	}
+    	*/
     	for(jy=1;jy<=NYREAL;jy++)
     	{
     		/*
@@ -1147,6 +1154,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 
 
     			//for bottom boundaries, dirichlet condition
+    			/* try no Dirichlet on bottom...
     			if(jy==1)
     			{
     				tempcob=0.;
@@ -1156,8 +1164,10 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				}
     				tempcob=tempcob-c11*cxrl[k][0]*DX[ix];
 
-    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;
+//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
+    			*/
 
 
     			//for right boundaries, dirichlet condition
@@ -1196,7 +1206,8 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				}
     				tempcob=tempcob+c11*cxrr[k][0]*DX[ix];
 
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;
+    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
     			}
 
     			if(jy==NYREAL-1&&CX[ix]>=xc&&CX[ix]<=xd)
@@ -1206,7 +1217,8 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				{
     					tempcob=tempcob-cxlr[k][kk]*epsil[ix][jy+1]*acxrr[kk][0]*DX[ix]/DY[jy+1];
     				}
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;
+    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
     		}
     	}
@@ -1282,7 +1294,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			{
 				POTC[3*ii+k]=poisb[3*ii+k];
 			}
-			POT[ix][jy]=POTC[3*ii];
+			POT[ix+1][jy+1]=POTC[3*ii];
 		}
 	}
 
@@ -1373,9 +1385,19 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 	//top
 	for(ix=1;ix<=NX;ix++)
 	{
+		//at top, neumann
 		jy=NYREAL;
 		ii = (ix-1)*NX + jy-1;
-		ii_l = (ix-1)*NX + jy-2;
+		for(k=0;k<=mpto;k++)
+		{
+			phiy[3*ii+k]=0.;
+		}
+		phiy[3*ii]=-POTC[3*ii+2]/DY[jy];	// There's a chance this not be negative...?
+
+		/*
+		jy=NYREAL;
+		ii = (ix-1)*NX + jy-1;
+		ii_l = (ix-1)*NX + jy-2;,,m,
 		if(CX[ix]>=xc&&CX[ix]<=xd)
 		{
 			for(k=0;k<=mpto;k++)
@@ -1387,11 +1409,11 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 					j_l = (mpto+1)*ii_l + kk;
 					phiy[3*ii+k]=phiy[3*ii+k]+acvy[k][kk]*POTC[3*ii+kk]-acxrl[k][kk]*POTC[3*ii_l+kk];
 				}
-				phiy[3*ii+k]=phiy[3*ii+k]+acxrr[k][0]*ptop;
+				phiy[3*ii+k]=phiy[3*ii+k]+acxrr[k][0]*pybc;
 				phiy[3*ii+k]=-phiy[3*ii+k]/DY[jy];
 			}
-
 		}
+		*/
 	}
 
 	for(ix=1;ix<=NX;ix++)
@@ -1463,6 +1485,17 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			{
 				SE_Y[ii] = -1.;
 			}
+		}
+	}
+}
+
+void InitPOT(void)
+{
+	for(int ix=1;ix<=NX;ix++)
+	{
+		for(int iy=1;iy<=NY;iy++)
+		{
+			POT[ix][iy] = 0;
 		}
 	}
 }

@@ -42,4 +42,6 @@ void setup_pois(void);
 
 void transmat(void);
 
+void InitPOT(void);
+
 #endif /* POISSONFUNCTIONS_H_ */

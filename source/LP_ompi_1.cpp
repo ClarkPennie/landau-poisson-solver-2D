@@ -30,7 +30,7 @@ double Lx=4., Lv=5.25;																				// declare Lx (for 0 < x < Lx) and set
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0.1, dt=0.004; //, nthread=16; 																// declare nu (1/knudson#) and set it to 0.1, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0.1, dt=0.004; //, nthread=64; 																// declare nu (1/knudson#) and set it to 0.1, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef Damping																						// only do this if Damping was defined
@@ -127,10 +127,9 @@ int main()
 	MPI_Init_thread(NULL, NULL, required, &provided);												// initialise the hybrid MPI & OpenMP environment, requesting the level of thread support to be required and store the actual thread support provided in provided
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank_mpi);														// store the rank of the current process in the MPI_COMM_WORLD communicator in myrank_mpi
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs_mpi);														// store the total number of processes running in the MPI_COMM_WORLD communicator in nprocs_mpi
-  
+
 	int nthread;																					// declare nthread (the number of OpenMP threads)
 	nthread = omp_get_max_threads();																// set nthread to the value of the environment variable OMP_NUM_THREADS by calling the OpenMP function omp_get_max_threads
-
 
 	// CHECK THE LEVEL OF THREAD SUPPORT:
 	if (provided < required)																		// only do this if the required thread support was not possible
@@ -344,7 +343,7 @@ int main()
 			buffer_margx1x2[120], buffer_ent[120];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_Test2DPoisRK3_i1");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_Test2DPoisNewBC");													// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -385,6 +384,7 @@ int main()
 	config();
 	setup_pois();
 	setup_matrix();
+	InitPOT();
 
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;					// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
@@ -608,10 +608,10 @@ int main()
 			  #endif*/
       
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
+		    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 			if(t%20==0)
 			{
 				PrintMarginal(U, fmarg_x1v1, fmarg_x1x2);											// print the (x1,v1) & (x1,x2) marginal distributions, using the DG coefficients in U, in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
-			    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 			}
 		}
 	
