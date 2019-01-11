@@ -14,6 +14,6 @@ set -x
 export OMP_NUM_THREADS=64
 #export I_MPI_DEBUG=2
 
-ibrun tacc_affinity ./bin/LPsolver_2D_Test2D_New2DE_i2toi1.out
+ibrun tacc_affinity ./bin/LPsolver_2D_Test2D.out
 # valgrind --leak-check=yes 
 #./fpl.out
