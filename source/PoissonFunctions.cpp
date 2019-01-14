@@ -1050,7 +1050,14 @@ poiscab=(double *)malloc(ldab*ndim*sizeof(double));
 coef_pois();
 transmat();
 
+#ifdef HAVE_MKL
 dgbtrf(&ndim, &ndim, &nsub, &nsuper, poiscab, &ldab, ipiv, info);
+#elif HAVE_OPENBLAS
+dgbtrf_(&ndim, &ndim, &nsub, &nsuper, poiscab, &ldab, ipiv, info);
+#else
+printf("Error: unsupported BLAS configuration\n");
+exit(1);
+#endif
 if(*info!=0) cout << "error in factorizing " << *info << endl;
 
 }
@@ -1276,7 +1283,14 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
      *
      */
     nrhs=1;
+    #ifdef HAVE_MKL
     dgbtrs(&trans, &ndim, &nsub, &nsuper, &nrhs, poiscab, &ldab, ipiv, poisb, &ndim, info);
+    #elif HAVE_OPENBLAS
+    dgbtrs_(&trans, &ndim, &nsub, &nsuper, &nrhs, poiscab, &ldab, ipiv, poisb, &ndim, info);
+    #else
+    printf("Error: unsupported BLAS configuration\n");
+    exit(1);
+    #endif
     if(*info!=0)
     {
     	cout << "error in solving system " << *info << endl;

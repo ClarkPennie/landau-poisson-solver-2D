@@ -444,8 +444,18 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U_vals,i); // BUG: Int_E2nd() require knowldege of cp
   }
-
-
+  /*
+  if(myrank_mpi == 0)
+  {
+	  for(k=0; k<size; k++)
+	  {
+		  for(l=0; l<7; l++)
+		  {
+			  printf("U_vals[%d*7+%d] = %g \n", k, l, U_vals[k*7+l]);
+		  }
+	  }
+  }
+  */
   pois2d(U_vals, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 
   #pragma omp parallel for schedule(dynamic)  private(H,k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5) shared(U_vals, Utmp)
@@ -465,6 +475,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     H[6] = (60*tp5 - 15*tp0)/dx/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
     H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
+    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l] + dt*H[l];
   } 
@@ -487,7 +498,18 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   
   MPI_Bcast(&U1[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
-
+  /*
+  if(myrank_mpi == 0)
+  {
+	  for(k=0; k<size; k++)
+	  {
+		  for(l=0; l<7; l++)
+		  {
+			  printf("U1[%d*7+%d] = %g \n", k, l, U1[k*7+l]);
+		  }
+	  }
+  }
+  */
   /////////////////// 1st step of RK3 done//////////////////////////////////////////////////////// 
     
 
@@ -523,7 +545,8 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     H[6] = (60*tp5 - 15*tp0)/dx/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
     H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
-    
+    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+
     for(l=0;l<7;l++) Utmp[k_local*7+l] = 0.75*U_vals[k*7+l] + 0.25*U1[k*7+l] + 0.25*dt*H[l];
   }    
   if(myrank_mpi == 0) {
@@ -577,6 +600,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     H[6] = (60*tp5 - 15*tp0)/dx/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
     H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
+    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l]/3. + U1[k*7+l]*2./3. + dt*H[l]*2./3.;
   }    
