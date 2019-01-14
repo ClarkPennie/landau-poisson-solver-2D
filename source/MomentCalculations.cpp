@@ -46,6 +46,7 @@ double computeKiE(vector<double>& U_vals)
 	return 0.5*tmp;
 }
 
+/* 1D
 double computeEleE_1D(vector<double>& U_vals)
 {
   int k, i, j;
@@ -76,6 +77,7 @@ double computeEleE_1D(vector<double>& U_vals)
   retn = tmp1 + tmp2 + tmp3 + 2*ce1*tmp4 - 2*tmp5 + tmp6;
   return 0.5*retn;
 }
+*/
 
 double computeEleE(vector<double>& phix_vals, vector<double>& phiy_vals)							// function to compute the electric energy (EleE = 0.5*\int_{Omega_x} |E(x,t)|^2 dx) using the coefficients of the field stored in phix_vals & phiy_vals
 {

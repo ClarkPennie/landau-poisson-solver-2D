@@ -20,6 +20,7 @@ double Gridx(double m){ // x in [0,Lx]  (returns the x value at the mth discrete
 	return (m+0.5)*dx;
 }
 
+/* 1D
 double rho_x(double x, vector<double>& U, int i) // for x in I_i			// MAY NEVER BE CALLED
 {
   int j, k;
@@ -105,7 +106,7 @@ double Int_Int_rho1st(double *U, int i)// \int_{I_i} [(x-x_i)/delta_x * \int^{x}
   }
   return retn*dx*dx*scalev; 
 }
-
+*/
 /*double Int_Cumulativerho(double **U, int i)// \int_{I_i} [ \int^{x}_{0} rho(z)dz ] dx
 {
   double retn=0., cp, tmp;
@@ -133,7 +134,7 @@ double Int_Cumulativerho_sqr(double **U, int i)// \int_{I_i} [ \int^{x}_{0} rho(
   retn = tmp1 + tmp2 + tmp3;
   return retn;  
 }*/
-
+/*
 double Int_E(vector<double>& U, int i) // \int_i E dx      // Function to calculate the integral of E_h w.r.t. x over the interval I_i = [x_(i-1/2), x_(i+1/2))
 {
 	int m, j, k;
@@ -180,6 +181,7 @@ double Int_fE_1DE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on elem
 	retn = (U[k*7+0] + U[k*7+6]/4.)*intE[i] + U[k*7+1]*intE1[i];
 	return retn*scalev;
 }
+*/
 
 double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element I_i * K_j
 {
@@ -191,6 +193,7 @@ double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element 
 	return retn*scalev;
 }
 
+/*
 double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 {
     int m, j, j1, j2, j3, k;
@@ -209,6 +212,7 @@ double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 
     return result;
 }
+*/
 
 double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
 {

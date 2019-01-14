@@ -33,29 +33,29 @@ double Gridv(double m);
 
 double Gridx(double m);
 
-double rho_x(double x, vector<double>& U, int i);
+//double rho_x(double x, vector<double>& U, int i);
 
-double rho(vector<double>& U, int i);
+//double rho(vector<double>& U, int i);
 
-double computePhi_x_0(vector<double>& U);
+//double computePhi_x_0(vector<double>& U);
 
 //double computePhi(double *U, double x, int ix);	STILL NEEDS TO BE ADDED FOR 2D
 
 //void PrintPhiVals(double *U, FILE *phifile);		STILL NEEDS TO BE ADDED FOR 2D
 
-double computeC_rho(vector<double>& U, int i);
+//double computeC_rho(vector<double>& U, int i);
 
-double Int_Int_rho(vector<double>& U, int i);
+//double Int_Int_rho(vector<double>& U, int i);
 
-double Int_Int_rho1st(vector<double>& U, int i);
+//double Int_Int_rho1st(vector<double>& U, int i);
 
-double Int_E(vector<double>& U, int i);
+//double Int_E(vector<double>& U, int i);
 
-double Int_E1st(vector<double>& U, int i);
+//double Int_E1st(vector<double>& U, int i);
 
 double Int_fE(vector<double>& U, int i_mod, int j);
 
-double Int_E2nd(vector<double>& U, int i);
+//double Int_E2nd(vector<double>& U, int i);
 
 double I1(vector<double>& U_vals0, int k, int l);
 
