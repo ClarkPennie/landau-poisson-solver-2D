@@ -185,7 +185,7 @@ double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element 
 {
 	double retn=0.;
 	int k;
-	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j (choose i2 = 0 as should be same for all i2 in 1D)
+	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j = i*size_v + j, for i = i_mod = i1*Nx + i2 (choose i2 = 0 as should be same for all i2 in 1D)
 
 	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];
 	return retn*scalev;
@@ -432,7 +432,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
  
   MPI_Status status;
   
-
+  /* 1D
   ce = computePhi_x_0(U_vals);
 
   #pragma omp parallel for private(i) shared(U_vals,cp, intE, intE1)
@@ -444,6 +444,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U_vals,i); // BUG: Int_E2nd() require knowldege of cp
   }
+  */
   /*
   if(myrank_mpi == 0)
   {
@@ -512,7 +513,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   */
   /////////////////// 1st step of RK3 done//////////////////////////////////////////////////////// 
     
-
+  /* 1D
   ce = computePhi_x_0(U1); 
 
   #pragma omp parallel for private(i) shared(U1,cp, intE, intE1)
@@ -524,7 +525,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U1,i); // BUG: Int_E2nd() require knowldege of cp 
   }
-
+  */
 
   pois2d(U1, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U1, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 
@@ -569,7 +570,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   MPI_Barrier(MPI_COMM_WORLD);
   /////////////////// 2nd step of RK3 done//////////////////////////////////////////////////////// 
    
-
+  /* 1D
   ce = computePhi_x_0(U1);
 
   #pragma omp parallel for private(i) shared(U1,cp, intE, intE1)
@@ -581,7 +582,7 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   for(i=0;i<Nx;i++){
     intE2[i] = Int_E2nd(U1,i); // BUG: Int_E2nd() require knowldege of cp 
   }
-  
+  */
 
   pois2d(U1, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
 

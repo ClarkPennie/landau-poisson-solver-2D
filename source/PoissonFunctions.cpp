@@ -1368,9 +1368,11 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 	//E_y
 	for(ix=1;ix<=NX;ix++)
 	{
-		for(jy=1;jy<=NYREAL;jy++)
+		for(jy=2;jy<=NYREAL;jy++)
 		{
 			ii = (ix-1)*NX + jy-1;
+			ii_l = (ix-1)*NX + jy-2;
+			/* jy=1 case taken care of next with Neumann BC!
 			if(jy > 1) // May be necessary when jy = 1 as then ii_l < 0
 			{
 				ii_l = (ix-1)*NX + jy-2;
@@ -1379,6 +1381,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			{
 				ii_l = ii;
 			}
+			*/
 			for(k=0;k<=mpto;k++)
 			{
 				phiy[3*ii+k]=0.;
