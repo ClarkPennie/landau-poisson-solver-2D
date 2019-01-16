@@ -134,7 +134,7 @@ double Int_Cumulativerho_sqr(double **U, int i)// \int_{I_i} [ \int^{x}_{0} rho(
   retn = tmp1 + tmp2 + tmp3;
   return retn;  
 }*/
-/*
+/* 1D
 double Int_E(vector<double>& U, int i) // \int_i E dx      // Function to calculate the integral of E_h w.r.t. x over the interval I_i = [x_(i-1/2), x_(i+1/2))
 {
 	int m, j, k;
@@ -189,11 +189,12 @@ double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element 
 	int k;
 	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j = i*size_v + j, for i = i_mod = i1*Nx + i2 (choose i2 = 0 as should be same for all i2 in 1D)
 
-	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];
+	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*intE1[i];	//1D E
+	//retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];	//2D E
 	return retn*scalev;
 }
 
-/*
+/* 1D
 double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 {
     int m, j, j1, j2, j3, k;
@@ -404,7 +405,7 @@ double I5(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of
 		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkr*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
 		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkl*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
 	}
-
+	/**/
   	return result;
 }
 
@@ -462,6 +463,15 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   }
   */
   pois2d(U_vals, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
+
+  /* 1D
+  for(i=0;i<Nx;i++)
+  {
+	  printf("intE[%d] = %g, IE_X[%d] = %g, dx*IE_X[%d] = %g \n", i, intE[i], i, IE_X[i*Nx], i, dx*IE_X[i*Nx]);
+	  printf("intE1[%d] = %g, IXE_X[%d] = %g, dx*IXE_X[%d] = %g \n", i, intE1[i], i, IXE_X[i*Nx], i, dx*IXE_X[i*Nx]);
+	  printf("intE2[%d] = %g, IXXE_X[%d] = %g, dx*IXXE_X[%d] = %g \n\n", i, intE2[i], i, IXXE_X[i*Nx], i, dx*IXXE_X[i*Nx]);
+  }
+  */
 
   #pragma omp parallel for schedule(dynamic)  private(H,k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5) shared(U_vals, Utmp)
   for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){

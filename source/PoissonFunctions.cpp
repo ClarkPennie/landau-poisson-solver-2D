@@ -1077,20 +1077,20 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     // The coefficients for the charge density. See Eq. (36).
     // Note that when integrating the DG approximation here, since it only uses centered linear basis
     // functions in velocity, they integrate to zero, so the solution is the space part times dv^3.
-    for(int i1=0; i1<NX; ++i1)
+    for(int i1=0; i1<NX; i1++)
     {
     	i1NxNvNvNv = i1*Nx*Nv*Nv*Nv;
-    	for(int i2=0; i2<NY; ++i2)
+    	for(int i2=0; i2<NY; i2++)
     	{
         	i2NvNvNv = i2*Nv*Nv*Nv;
     		rt[i1+1][i2+1] = rx[i1+1][i2+1] = ry[i1+1][i2+1] = 0.;
-    		for(int j1=0; j1<Nv; ++j1)
+    		for(int j1=0; j1<Nv; j1++)
     		{
     			j1NvNv = j1*Nv*Nv;
-    			for(int j2=0; j2<Nv; ++j2)
+    			for(int j2=0; j2<Nv; j2++)
     			{
     				j2Nv = j2*Nv;
-    				for(int j3=0; j3<Nv; ++j3)
+    				for(int j3=0; j3<Nv; j3++)
     				{
     					k = i1NxNvNvNv + i2NvNvNv + j1NvNv + j2Nv + j3;
     					rt[i1+1][i2+1] += scalev*(Ut[7*k+0] + 0.25*Ut[7*k+6]);
@@ -1478,19 +1478,21 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			IXYE_Y[i][j] = 0.;
 			IYYE_Y[i][j] = phiy[0][i][j]/3.;
 			*/
-			IE_X[ii] = phix[3*ii];
-			IXE_X[ii] = phix[3*ii+1]/12.;
-			IYE_X[ii] = phix[3*ii+2]/12.;
-			IXXE_X[ii] =phix[3*ii]/12.;
-			IXYE_X[ii] = 0.;
-			IYYE_X[ii] = phix[3*ii]/12.;
 
-			IE_Y[ii] = phiy[3*ii];
-			IXE_Y[ii] = phiy[3*ii+1]/12.;
-			IYE_Y[ii] = phiy[3*ii+2]/12.;
-			IXXE_Y[ii] = phiy[3*ii]/12.;
+			// WILL NEED TO CHANGE THIS ALL TO dx*dx* FOR 2D (or dx*dy*)
+			IE_X[ii] = dx*phix[3*ii];
+			IXE_X[ii] = dx*phix[3*ii+1]/12.;
+			IYE_X[ii] = dx*phix[3*ii+2]/12.;
+			IXXE_X[ii] =dx*phix[3*ii]/12.;
+			IXYE_X[ii] = 0.;
+			IYYE_X[ii] = dx*phix[3*ii]/12.;
+
+			IE_Y[ii] = dx*phiy[3*ii];
+			IXE_Y[ii] = dx*phiy[3*ii+1]/12.;
+			IYE_Y[ii] = dx*phiy[3*ii+2]/12.;
+			IXXE_Y[ii] = dx*phiy[3*ii]/12.;
 			IXYE_Y[ii] = 0.;
-			IYYE_Y[ii] = phiy[3*ii]/12.;
+			IYYE_Y[ii] = dx*phiy[3*ii]/12.;
 
 			// the sign of the components of the electric field in the cells
 			if(IE_X[ii]>0.)

@@ -28,7 +28,7 @@ AX_OPENMP([CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"], AC_MSG_ERROR([Could not detec
 # MKL check
 AC_LANG_PUSH([C])
 AX_COMPILER_VENDOR
-ACX_MKL([],AC_MSG_NOTICE([MKL not found. Will next check for OpenBLAS]))
+ACX_MKL([CXXFLAGS="$CXXFLAGS -DHAVE_MKL"],AC_MSG_NOTICE([MKL not found. Will next check for OpenBLAS]))
 AC_LANG_POP([C])
 
 if test "x${MKLROOT}" != "x"; then

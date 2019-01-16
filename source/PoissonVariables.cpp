@@ -21,7 +21,7 @@ double POT[N2XD][N2YD];
   where, set R = [x_{i-1/2}, x_{i+1/2}] * [y_{j-1/2}, y_{j+1/2}]
                            (the cell in (x,y) plane),
 
-                   1         ( (
+               measure(R)    ( (
   Iaaa[i][j] = ----------    | |  bbb(x,y) dx dy
                measure(R)    ) )
                                R
