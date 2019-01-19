@@ -215,7 +215,7 @@ double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 }
 */
 
-double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
+double I1_1D(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
 {
   double result;
   int i1, i2, j1, j2, j3; // k=i1*Nx*Nv^3 + i2*Nv^3 + (j1*Nv*Nv + j2*Nv + j3)								// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell)
@@ -228,6 +228,35 @@ double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral
   i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
 
   if(l==1) result = dv*dv*dv*( Gridv((double)j1)*U_vals0[k*7+0] + dv*U_vals0[k*7+3]/12. + U_vals0[k*7+6]*Gridv((double)j1)/4.);
+  else result=0.;
+
+  return result;
+}
+
+double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
+{
+  double result;
+  int i1, i2, j1, j2, j3; // k=i1*Nx*Nv^3 + i2*Nv^3 + (j1*Nv*Nv + j2*Nv + j3)								// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell)
+  int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
+  int i_mod = (k-j_mod)/size_v;																				// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
+  j3 = j_mod%Nv;																							// calculate j3 for the given k
+  j2 = ((j_mod-j3)%(Nv*Nv))/Nv;																				// calculate j2 for the given k
+  j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
+  i2 = i_mod%Nx;																							// calculate i2 for the given k
+  i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
+  double v_j1, v_j2;																						// declare v_j1 & v_j2 (the value at the center of the velocity grid in the v1 & v2 directions)
+
+  /* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
+  if(l==1)
+  {
+	  v_j1 = Gridv((double)j1);
+	  result = scalev*(U_vals0[k*7+0]*v_j1 + U_vals0[k*7+3]*dv/12. + U_vals0[k*7+6]*v_j1/4.);
+  }
+  else if(l==2)
+  {
+	  v_j2 = Gridv((double)j2);
+	  result = scalev*(U_vals0[k*7+0]*v_j2 + U_vals0[k*7+4]*dv/12. + U_vals0[k*7+6]*v_j2/4.);
+  }
   else result=0.;
   
   return result;
