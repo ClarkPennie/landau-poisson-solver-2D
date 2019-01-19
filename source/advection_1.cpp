@@ -183,14 +183,24 @@ double Int_fE_1DE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on elem
 }
 */
 
-double Int_fE(vector<double>& U, int i, int j) // \int f * E(f) dxdv on element I_i * K_j
+double Int_fE1(vector<double>& U, int i, int j) // \int f * E_1(f) dxdv on element I_i * K_j
 {
 	double retn=0.;
 	int k;
 	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j = i*size_v + j, for i = i_mod = i1*Nx + i2 (choose i2 = 0 as should be same for all i2 in 1D)
 
-	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*intE1[i];	//1D E
-	//retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i];	//2D E
+	//retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*intE1[i];	//1D E
+	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_X[i] + U[k*7+1]*IXE_X[i] + U[k*7+2]*IYE_X[i];	//2D E
+	return retn*scalev;
+}
+
+double Int_fE2(vector<double>& U, int i, int j) // \int f * E_2(f) dxdv on element I_i * K_j
+{
+	double retn=0.;
+	int k;
+	k = i*size_v + j;	// assuming k = i1*Nx*size_v + i2*size_v + j = i*size_v + j, for i = i_mod = i1*Nx + i2 (choose i2 = 0 as should be same for all i2 in 1D)
+
+	retn = (U[k*7+0] + U[k*7+6]/4.)*IE_Y[i] + U[k*7+1]*IXE_Y[i] + U[k*7+2]*IYE_Y[i];	//2D E
 	return retn*scalev;
 }
 
@@ -235,52 +245,69 @@ double I1_1D(vector<double>& U_vals0, int k, int l) // Calculate the first inegt
 
 double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
 {
-  double result;
-  int i1, i2, j1, j2, j3; // k=i1*Nx*Nv^3 + i2*Nv^3 + (j1*Nv*Nv + j2*Nv + j3)								// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell)
-  int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
-  int i_mod = (k-j_mod)/size_v;																				// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
-  j3 = j_mod%Nv;																							// calculate j3 for the given k
-  j2 = ((j_mod-j3)%(Nv*Nv))/Nv;																				// calculate j2 for the given k
-  j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
-  i2 = i_mod%Nx;																							// calculate i2 for the given k
-  i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
-  double v_j1, v_j2;																						// declare v_j1 & v_j2 (the value at the center of the velocity grid in the v1 & v2 directions)
+	double result;
+	int i1, i2, j1, j2, j3; // k=i1*Nx*Nv^3 + i2*Nv^3 + (j1*Nv*Nv + j2*Nv + j3)								// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell)
+	int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
+	int i_mod = (k-j_mod)/size_v;																				// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
+	j3 = j_mod%Nv;																							// calculate j3 for the given k
+	j2 = ((j_mod-j3)%(Nv*Nv))/Nv;																				// calculate j2 for the given k
+	j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
+	i2 = i_mod%Nx;																							// calculate i2 for the given k
+	i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
+	double v_j1, v_j2;																						// declare v_j1 & v_j2 (the value at the center of the velocity grid in the v1 & v2 directions)
 
-  /* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
-  if(l==1)
-  {
+	/* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
+	if(l==1)
+	{
 	  v_j1 = Gridv((double)j1);
 	  result = scalev*(U_vals0[k*7+0]*v_j1 + U_vals0[k*7+3]*dv/12. + U_vals0[k*7+6]*v_j1/4.);
-  }
-  else if(l==2)
-  {
+	}
+	else if(l==2)
+	{
 	  v_j2 = Gridv((double)j2);
 	  result = scalev*(U_vals0[k*7+0]*v_j2 + U_vals0[k*7+4]*dv/12. + U_vals0[k*7+6]*v_j2/4.);
-  }
-  else result=0.;
+	}
+	else result=0.;
+
+	return result;
+}
+
+double I2_1D(vector<double>& U_vals0, int k, int l) // Calculate the fourth integral in H_(i,j), namely \int E*f*phi_v1 dxdv
+{
+  double result;
+  int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
+  int i_mod = (k-j_mod)/size_v;		// k = i_mod*Nv^3 + j_mod												// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
+
+  //if(l==3) result = Int_fE_1DE(U_vals0,i1,j_mod)/dv;	//1D E
+  //else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i1]/6.;	//1D E
+  if(l==3) result = Int_fE1(U_vals0,i_mod,j_mod)/dv;	//2D E
+  else if(l==6) result = U_vals0[k*7+3]*dv*dv*IE_X[i_mod]/6.;	//2D E
+  else result = 0.;
   
   return result;
 }
 
 double I2(vector<double>& U_vals0, int k, int l) // Calculate the fourth integral in H_(i,j), namely \int E*f*phi_v1 dxdv
 {
-  double result;
-  int i1, i2, j1, j2, j3; // k=i1*Nx*Nv^3 + i2*Nv^3 + (j1*Nv*Nv + j2*Nv + j3)								// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell)
-  int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
-  int i_mod = (k-j_mod)/size_v;																				// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
-  // j3 = j_mod%Nv;																							// calculate j3 for the given k
-  // j2 = ((j_mod-j3)%(Nv*Nv))/Nv;																			// calculate j2 for the given k
-  // j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
-  i2 = i_mod%Nx;																							// calculate i2 for the given k
-  i1 = (i_mod - i2)/Nx;																						// calculate i1 for the given k
+	double result;
+	int j_mod = k%size_v;																						// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
+	int i_mod = (k-j_mod)/size_v;		// k = i_mod*Nv^3 + j_mod												// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
 
-  //if(l==3) result = Int_fE_1DE(U_vals0,i1,j_mod)/dv;	//1D E
-  //else if(l==6) result = U_vals0[k*7+3]*dv*dv*intE[i1]/6.;	//1D E
-  if(l==3) result = Int_fE(U_vals0,i_mod,j_mod)/dv;	//2D E
-  else if(l==6) result = U_vals0[k*7+3]*dv*dv*IE_X[i_mod]/6.;	//2D E
-  else result = 0.;
-  
-  return result;
+	if(l==3)
+	{
+	  result = Int_fE1(U_vals0,i_mod,j_mod)/dv;	//2D E
+	}
+	else if(l==4)
+	{
+	  result = Int_fE2(U_vals0,i_mod,j_mod)/dv;	//2D E
+	}
+	else if(l==6)
+	{
+	  result = dv*dv*(U_vals0[k*7+3]*IE_X[i_mod] + U_vals0[k*7+4]*IE_Y[i_mod])/6.;	//2D E
+	}
+	else result = 0.;
+
+	return result;
 }
 
 double I3(vector<double>& U_vals0, int k, int l) 																			// Calculate the difference of the second and third integrals in H_(i,j), namely \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2

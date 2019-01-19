@@ -1481,7 +1481,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 
 			// WILL NEED TO CHANGE THIS ALL TO dx*dx* FOR 2D (or dx*dy*)
 			IE_X[ii] = dx*phix[3*ii];
-			IXE_X[ii] = dx*phix[3*ii+1]/12.;
+			IXE_X[ii] = dx*phix[3*ii+1]/12.;	// This one is giving a substantial error
 			IYE_X[ii] = dx*phix[3*ii+2]/12.;
 			IXXE_X[ii] =dx*phix[3*ii]/12.;
 			IXYE_X[ii] = 0.;
