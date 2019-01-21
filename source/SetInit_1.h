@@ -34,7 +34,9 @@ double Mw(double v1, double v2, double v3);
 
 //double f_2H(double x);
 
-void SetInit_LD(vector<double>& U_vals);
+void SetInit_LD_x1(vector<double>& U_vals);
+
+void SetInit_LD_x2(vector<double>& U_vals);
 
 //void SetInit_4H(double *U);
 

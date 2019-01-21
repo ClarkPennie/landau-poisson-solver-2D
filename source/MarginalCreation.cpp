@@ -136,6 +136,12 @@ void PrintMarginalLoc(FILE *margfile_x1v1, FILE *margfile_x1x2)									// funct
 				for (nv=0; nv<np; nv++)
 				{
 					fprintf(margfile_x1v1, "%11.8g  ", x1_val);									// in the file tagged as margfile_x1v1, print the x1 coordinate
+				}
+			}
+			for(i2=0; i2<Nx; i2++)
+			{
+				for (nv=0; nv<np; nv++)
+				{
 					fprintf(margfile_x1x2, "%11.8g  ", x1_val);									// in the file tagged as margfile_x1x2, print the x1 coordinate
 				}
 			}
