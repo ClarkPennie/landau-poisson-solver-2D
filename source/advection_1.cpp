@@ -260,12 +260,12 @@ double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral
 	if(l==1)
 	{
 	  v_j1 = Gridv((double)j1);																				// set v_j1 to value of v_1 at the center of cell j_1
-	  result = scalev*(U_vals0[k*7+0]*v_j1 + U_vals0[k*7+3]*dv/12. + U_vals0[k*7+6]*v_j1/4.);
+	  result = dx*scalev*(U_vals0[k*7+0]*v_j1 + U_vals0[k*7+3]*dv/12. + U_vals0[k*7+6]*v_j1/4.);
 	}
 	else if(l==2)
 	{
 	  v_j2 = Gridv((double)j2);
-	  result = scalev*(U_vals0[k*7+0]*v_j2 + U_vals0[k*7+4]*dv/12. + U_vals0[k*7+6]*v_j2/4.);
+	  result = dx*scalev*(U_vals0[k*7+0]*v_j2 + U_vals0[k*7+4]*dv/12. + U_vals0[k*7+6]*v_j2/4.);
 	}
 	else result=0.;
 
@@ -394,31 +394,31 @@ double I3_x1(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	/* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
 	if(l==0)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j1 + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j1 + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==1)
 	{
-		result = 0.5*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur + ul) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j1 + (U_vals0[kkr*7+3] + U_vals0[kkl*7+3])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = 0.5*dx*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur + ul) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j1 + (U_vals0[kkr*7+3] + U_vals0[kkl*7+3])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==2)
 	{
-		result = scalev*(U_vals0[kkr*7+2] - U_vals0[kkl*7+2])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+2] - U_vals0[kkl*7+2])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
 	}
 	else if(l==3)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*v_j1)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*v_j1)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
 	}
 	else if(l==4)
 	{
-		result = scalev*(U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
 	}
 	else if(l==5)
 	{
-		result = scalev*(U_vals0[kkr*7+5] - U_vals0[kkl*7+5])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 4 (i.e. linear in v_3) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+5] - U_vals0[kkl*7+5])*v_j1/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 4 (i.e. linear in v_3) which is non-zero in the cell with global index k
 	}
 	else if(l==6)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j1 + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j1 + (U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
 	}
 
 	return result;
@@ -463,31 +463,31 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	/* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
 	if(l==0)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==1)
 	{
-		result = scalev*(U_vals0[kkr*7+1] - U_vals0[kkl*7+1])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+1] - U_vals0[kkl*7+1])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
 	}
 	else if(l==2)
 	{
-		result = 0.5*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur + ul) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] + U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = 0.5*dx*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur + ul) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] + U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==3)
 	{
-		result = scalev*(U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+3] - U_vals0[kkl*7+3])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 3 (i.e. linear in v_2) which is non-zero in the cell with global index k
 	}
 	else if(l==4)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*v_j2)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*v_j2)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
 	}
 	else if(l==5)
 	{
-		result = scalev*(U_vals0[kkr*7+5] - U_vals0[kkl*7+5])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 4 (i.e. linear in v_3) which is non-zero in the cell with global index k
+		result = dx*scalev*(U_vals0[kkr*7+5] - U_vals0[kkl*7+5])*v_j2/12.;																												// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 4 (i.e. linear in v_3) which is non-zero in the cell with global index k
 	}
 	else if(l==6)
 	{
-		result = scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
 	}
 
 	return result;
@@ -950,10 +950,10 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
 
     //H[k_local][0] = (19*tp[0]/4. - 15*tp[5])/dx/scalev;
     //H[k_local][5] = (60*tp[5] - 15*tp[0])/dx/scalev;	
-    H[0] = (19*tp0/4. - 15*tp5)/dx/scalev;
-    H[6] = (60*tp5 - 15*tp0)/dx/scalev;
+    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
+    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
     H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l] + dt*H[l];
@@ -1020,10 +1020,10 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
 
     //H[k_local][0] = (19*tp[0]/4. - 15*tp[5])/dx/scalev;
     //H[k_local][5] = (60*tp[5] - 15*tp[0])/dx/scalev;	
-    H[0] = (19*tp0/4. - 15*tp5)/dx/scalev;
-    H[6] = (60*tp5 - 15*tp0)/dx/scalev;
+    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
+    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
     H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = 0.75*U_vals[k*7+l] + 0.25*U1[k*7+l] + 0.25*dt*H[l];
@@ -1075,10 +1075,10 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     tp4=I1(U1,k,5)-I2(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5)+I5_v1(U1,k,5)+I5_v2(U1,k,5);
     tp5=I1(U1,k,6)-I2(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6)+I5_v1(U1,k,6)+I5_v2(U1,k,6);
 
-    H[0] = (19*tp0/4. - 15*tp5)/dx/scalev;
-    H[6] = (60*tp5 - 15*tp0)/dx/scalev;
+    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
+    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./dx/scalev; H[3] = tp2*12./dx/scalev; H[4] = tp3*12./dx/scalev; H[5] = tp4*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
     H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l]/3. + U1[k*7+l]*2./3. + dt*H[l]*2./3.;

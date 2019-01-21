@@ -1480,19 +1480,19 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			*/
 
 			// WILL NEED TO CHANGE THIS ALL TO dx*dx* FOR 2D (or dx*dy*)
-			IE_X[ii] = dx*phix[3*ii];
-			IXE_X[ii] = dx*phix[3*ii+1]/12.;	// This one is giving a substantial error
-			IYE_X[ii] = dx*phix[3*ii+2]/12.;
-			IXXE_X[ii] =dx*phix[3*ii]/12.;
+			IE_X[ii] = dx*dx*phix[3*ii];
+			IXE_X[ii] = dx*dx*phix[3*ii+1]/12.;	// This one is giving a substantial error
+			IYE_X[ii] = dx*dx*phix[3*ii+2]/12.;
+			IXXE_X[ii] =dx*dx*phix[3*ii]/12.;
 			IXYE_X[ii] = 0.;
-			IYYE_X[ii] = dx*phix[3*ii]/12.;
+			IYYE_X[ii] = dx*dx*phix[3*ii]/12.;
 
-			IE_Y[ii] = dx*phiy[3*ii];
-			IXE_Y[ii] = dx*phiy[3*ii+1]/12.;
-			IYE_Y[ii] = dx*phiy[3*ii+2]/12.;
-			IXXE_Y[ii] = dx*phiy[3*ii]/12.;
+			IE_Y[ii] = dx*dx*phiy[3*ii];
+			IXE_Y[ii] = dx*dx*phiy[3*ii+1]/12.;
+			IYE_Y[ii] = dx*dx*phiy[3*ii+2]/12.;
+			IXXE_Y[ii] = dx*dx*phiy[3*ii]/12.;
 			IXYE_Y[ii] = 0.;
-			IYYE_Y[ii] = dx*phiy[3*ii]/12.;
+			IYYE_Y[ii] = dx*dx*phiy[3*ii]/12.;
 
 			// the sign of the components of the electric field in the cells
 			if(IE_X[ii]>0.)
