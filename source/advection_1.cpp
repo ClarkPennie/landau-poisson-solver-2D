@@ -225,6 +225,7 @@ double Int_E2nd(vector<double>& U, int i) // \int_i E* [(x-x_i)/delta_x]^2 dx
 }
 */
 
+/* 1D
 double I1_1D(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
 {
   double result;
@@ -242,6 +243,7 @@ double I1_1D(vector<double>& U_vals0, int k, int l) // Calculate the first inegt
 
   return result;
 }
+*/
 
 double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral in H_(i,j), namely \int v1*f*phi_x dxdv
 {
@@ -272,6 +274,7 @@ double I1(vector<double>& U_vals0, int k, int l) // Calculate the first inegtral
 	return result;
 }
 
+/*
 double I2_1D(vector<double>& U_vals0, int k, int l) // Calculate the fourth integral in H_(i,j), namely \int E*f*phi_v1 dxdv
 {
   double result;
@@ -286,6 +289,7 @@ double I2_1D(vector<double>& U_vals0, int k, int l) // Calculate the fourth inte
   
   return result;
 }
+*/
 
 double I2(vector<double>& U_vals0, int k, int l) // Calculate the fourth integral in H_(i,j), namely \int E*f*phi_v1 dxdv
 {
@@ -310,6 +314,7 @@ double I2(vector<double>& U_vals0, int k, int l) // Calculate the fourth integra
 	return result;
 }
 
+/*
 double I3_1D(vector<double>& U_vals0, int k, int l) 																			// Calculate the difference of the second and third integrals in H_(i,j), namely \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2
 {
 	double result, ur, ul;																					// declare result (the result of the integral to be returned), ur (used in the evaluation of gh^+/- on the right space cell edge) & ul (used in the evaluation of gh^+/- on the left space cell edge)
@@ -354,6 +359,7 @@ double I3_1D(vector<double>& U_vals0, int k, int l) 																			// Calcul
 
 	return result;
 }
+*/
 
 double I3_x1(vector<double>& U_vals0, int k, int l) 																			// Calculate the difference of the second and third integrals in H_(i,j), namely \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2
 {
@@ -493,6 +499,7 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	return result;
 }
 
+/* 1D
 double I5_1D(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of the fifth and sixth integrals in H_(i,j), namely \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2
 {
 	double result, ur, ul;																			// declare result (the result of the integral to be returned), ur (used in the evaluation of gh^+/- on the right velocity cell edge) & ul (used in the evaluation of gh^+/- on the left velocity cell edge)
@@ -562,7 +569,7 @@ double I5_1D(vector<double>& U_vals0, int k, int l) 	// Calculate the difference
 	}
 	*/
 
-	/* 2D E */
+	/* 2D E
 	if(l==0)																						// calculate \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	{
 		if(j1r<Nv && j1l>-1) result = dv*dv*(U_vals0[kkr*7+0] + 0.5*ur + U_vals0[kkr*7+6]*5./12.- U_vals0[kkl*7+0] - 0.5*ul - U_vals0[kkl*7+6]*5./12.)*IE_X[i_mod] + dv*dv*(U_vals0[kkr*7+1]-U_vals0[kkl*7+1])*IXE_X[i_mod];		// this is the value at an interior cell
@@ -599,9 +606,10 @@ double I5_1D(vector<double>& U_vals0, int k, int l) 	// Calculate the difference
 		else if(j1r<Nv)result= dv*dv*( ((U_vals0[kkr*7+0] + 0.5*ur)*5./12. + U_vals0[kkr*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkr*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the left boundary in v1 (so that the integral over the left edge is zero)
 		else if(j1l>-1)result=-dv*dv*( ((U_vals0[kkl*7+0] + 0.5*ul)*5./12. + U_vals0[kkl*7+6]*133./720.)*IE_X[i_mod] + U_vals0[kkl*7+1]*IXE_X[i_mod]*5./12. );													// this is the value at the cell at the right boundary in v1 (so that the integral over the right edge is zero)
 	}
-	/**/
+	/*
   	return result;
 }
+*/
 
 double I5_v1(vector<double>& U_vals0, int k, int l) 	// Calculate the difference of the fifth and sixth integrals in H_(i,j), namely \int_i E*f*phi dx at interface v1==v_j+1/2 - \int_i E*f*phi dx at interface v1==v_j-1/2
 {

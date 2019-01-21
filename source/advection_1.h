@@ -53,7 +53,11 @@ double Gridx(double m);
 
 //double Int_E1st(vector<double>& U, int i);
 
-double Int_fE(vector<double>& U, int i_mod, int j);
+//double Int_fE(vector<double>& U, int i_mod, int j);
+
+double Int_fE1(vector<double>& U, int i, int j);
+
+double Int_fE2(vector<double>& U, int i, int j);
 
 //double Int_E2nd(vector<double>& U, int i);
 
@@ -61,11 +65,15 @@ double I1(vector<double>& U_vals0, int k, int l);
 
 double I2(vector<double>& U_vals0, int k, int l);
 
-double I3(vector<double>& U_vals0, int k, int l);
+double I3_x1(vector<double>& U_vals0, int k, int l);
 
-double I5(vector<double>& U_vals0, int k, int l);
+double I3_x2(vector<double>& U_vals0, int k, int l);
 
-void computeH(double *U);
+double I5_v1(vector<double>& U_vals0, int k, int l);
+
+double I5_v2(vector<double>& U_vals0, int k, int l);
+
+//void computeH(double *U);
 
 void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vector<double>& phiy);
 
