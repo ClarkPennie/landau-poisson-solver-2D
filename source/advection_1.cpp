@@ -897,7 +897,7 @@ void computeH(double *H, double *U)// H_k(i,j)(f, E, phi_l)  					// MAY NEVER B
 void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vector<double>& phiy) // RK3 for f_t = H(f)
 {
   int i, k, l, k_local;
-  double tp0, tp1, tp2, tp3, tp4, tp5, H[7];//, tp0, tp5, tmp1, tmp2, tmp3, tmp5;
+  double tp0, tp1, tp2, tp3, tp4, tp5, tp6, H[7];
  
   MPI_Status status;
   
@@ -943,18 +943,17 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     
     tp0=I1(U_vals,k,0)-I2(U_vals,k,0)-I3_x1(U_vals,k,0)-I3_x2(U_vals,k,0)+I5_v1(U_vals,k,0)+I5_v2(U_vals,k,0);
     tp1=I1(U_vals,k,1)-I2(U_vals,k,1)-I3_x1(U_vals,k,1)-I3_x2(U_vals,k,1)+I5_v1(U_vals,k,1)+I5_v2(U_vals,k,1);
-    tp2=I1(U_vals,k,3)-I2(U_vals,k,3)-I3_x1(U_vals,k,3)-I3_x2(U_vals,k,3)+I5_v1(U_vals,k,3)+I5_v2(U_vals,k,3);
-    tp3=I1(U_vals,k,4)-I2(U_vals,k,4)-I3_x1(U_vals,k,4)-I3_x2(U_vals,k,4)+I5_v1(U_vals,k,4)+I5_v2(U_vals,k,4);
-    tp4=I1(U_vals,k,5)-I2(U_vals,k,5)-I3_x1(U_vals,k,5)-I3_x2(U_vals,k,5)+I5_v1(U_vals,k,5)+I5_v2(U_vals,k,5);
-    tp5=I1(U_vals,k,6)-I2(U_vals,k,6)-I3_x1(U_vals,k,6)-I3_x2(U_vals,k,6)+I5_v1(U_vals,k,6)+I5_v2(U_vals,k,6);
+    tp2=I1(U_vals,k,2)-I2(U_vals,k,2)-I3_x1(U_vals,k,2)-I3_x2(U_vals,k,2)+I5_v1(U_vals,k,2)+I5_v2(U_vals,k,2);
+    tp3=I1(U_vals,k,3)-I2(U_vals,k,3)-I3_x1(U_vals,k,3)-I3_x2(U_vals,k,3)+I5_v1(U_vals,k,3)+I5_v2(U_vals,k,3);
+    tp4=I1(U_vals,k,4)-I2(U_vals,k,4)-I3_x1(U_vals,k,4)-I3_x2(U_vals,k,4)+I5_v1(U_vals,k,4)+I5_v2(U_vals,k,4);
+    tp5=I1(U_vals,k,5)-I2(U_vals,k,5)-I3_x1(U_vals,k,5)-I3_x2(U_vals,k,5)+I5_v1(U_vals,k,5)+I5_v2(U_vals,k,5);
+    tp6=I1(U_vals,k,6)-I2(U_vals,k,6)-I3_x1(U_vals,k,6)-I3_x2(U_vals,k,6)+I5_v1(U_vals,k,6)+I5_v2(U_vals,k,6);
 
-    //H[k_local][0] = (19*tp[0]/4. - 15*tp[5])/dx/scalev;
-    //H[k_local][5] = (60*tp[5] - 15*tp[0])/dx/scalev;	
-    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
-    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
-    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l] + dt*H[l];
   } 
@@ -1013,18 +1012,17 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
     
     tp0=I1(U1,k,0)-I2(U1,k,0)-I3_x1(U1,k,0)-I3_x2(U1,k,0)+I5_v1(U1,k,0)+I5_v2(U1,k,0);
     tp1=I1(U1,k,1)-I2(U1,k,1)-I3_x1(U1,k,1)-I3_x2(U1,k,1)+I5_v1(U1,k,1)+I5_v2(U1,k,1);
-    tp2=I1(U1,k,3)-I2(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3)+I5_v1(U1,k,3)+I5_v2(U1,k,3);
-    tp3=I1(U1,k,4)-I2(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4)+I5_v1(U1,k,4)+I5_v2(U1,k,4);
-    tp4=I1(U1,k,5)-I2(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5)+I5_v1(U1,k,5)+I5_v2(U1,k,5);
-    tp5=I1(U1,k,6)-I2(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6)+I5_v1(U1,k,6)+I5_v2(U1,k,6);
+    tp2=I1(U1,k,2)-I2(U1,k,2)-I3_x1(U1,k,2)-I3_x2(U1,k,2)+I5_v1(U1,k,2)+I5_v2(U1,k,2);
+    tp3=I1(U1,k,3)-I2(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3)+I5_v1(U1,k,3)+I5_v2(U1,k,3);
+    tp4=I1(U1,k,4)-I2(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4)+I5_v1(U1,k,4)+I5_v2(U1,k,4);
+    tp5=I1(U1,k,5)-I2(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5)+I5_v1(U1,k,5)+I5_v2(U1,k,5);
+    tp6=I1(U1,k,6)-I2(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6)+I5_v1(U1,k,6)+I5_v2(U1,k,6);
 
-    //H[k_local][0] = (19*tp[0]/4. - 15*tp[5])/dx/scalev;
-    //H[k_local][5] = (60*tp[5] - 15*tp[0])/dx/scalev;	
-    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
-    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
-    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = 0.75*U_vals[k*7+l] + 0.25*U1[k*7+l] + 0.25*dt*H[l];
   }    
@@ -1070,16 +1068,17 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   
     tp0=I1(U1,k,0)-I2(U1,k,0)-I3_x1(U1,k,0)-I3_x2(U1,k,0)+I5_v1(U1,k,0)+I5_v2(U1,k,0);
     tp1=I1(U1,k,1)-I2(U1,k,1)-I3_x1(U1,k,1)-I3_x2(U1,k,1)+I5_v1(U1,k,1)+I5_v2(U1,k,1);
-    tp2=I1(U1,k,3)-I2(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3)+I5_v1(U1,k,3)+I5_v2(U1,k,3);
-    tp3=I1(U1,k,4)-I2(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4)+I5_v1(U1,k,4)+I5_v2(U1,k,4);
-    tp4=I1(U1,k,5)-I2(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5)+I5_v1(U1,k,5)+I5_v2(U1,k,5);
-    tp5=I1(U1,k,6)-I2(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6)+I5_v1(U1,k,6)+I5_v2(U1,k,6);
+    tp2=I1(U1,k,2)-I2(U1,k,2)-I3_x1(U1,k,2)-I3_x2(U1,k,2)+I5_v1(U1,k,2)+I5_v2(U1,k,2);
+    tp3=I1(U1,k,3)-I2(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3)+I5_v1(U1,k,3)+I5_v2(U1,k,3);
+    tp4=I1(U1,k,4)-I2(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4)+I5_v1(U1,k,4)+I5_v2(U1,k,4);
+    tp5=I1(U1,k,5)-I2(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5)+I5_v1(U1,k,5)+I5_v2(U1,k,5);
+    tp6=I1(U1,k,6)-I2(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6)+I5_v1(U1,k,6)+I5_v2(U1,k,6);
 
-    H[0] = (19*tp0/4. - 15*tp5)/scalex/scalev;
-    H[6] = (60*tp5 - 15*tp0)/scalex/scalev;
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
     //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
-    H[1] = tp1*12./scalex/scalev; H[3] = tp2*12./scalex/scalev; H[4] = tp3*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
-    H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
 
     for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l]/3. + U1[k*7+l]*2./3. + dt*H[l]*2./3.;
   }    
