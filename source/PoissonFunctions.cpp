@@ -1145,6 +1145,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     			ff[2][ix][jy]=PEP*ry[ix][jy]*DX[ix]*DY[jy]/12.;
     		}
 
+    		/* DIRICHLET IN x1 DIRECTION */
     		for(k=0;k<=mpto;k++)
     		{
     			//for left boundaries, dirichlet condition
@@ -1228,6 +1229,93 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
     		}
+
+
+    		/* DIRICHLET IN x2 DIRECTION
+    		for(k=0;k<=mpto;k++)
+    		{
+    			//for bottom boundaries, dirichlet condition
+    			if(jy==1)
+    			{
+    				tempcol=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcol=tempcol-(cvx[k][kk]-cyll[k][kk])*epsil[ix][jy]*acyrl[kk][0]*DY[jy]/DX[ix];
+    				}
+    				tempcol=tempcol-c11*cyrl[k][0]*DY[jy];
+    				ff[k][ix][jy]=ff[k][ix][jy]-tempcol*pleft;
+    			}
+
+
+    			//for bottom boundaries, dirichlet condition
+    			/* try no Dirichlet on bottom...
+    			if(jy==1)
+    			{
+    				tempcob=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcob=tempcob-(cvy[k][kk]-cxll[k][kk])*epsil[ix][jy]*acxrl[kk][0]*DX[ix]/DY[jy];
+    				}
+    				tempcob=tempcob-c11*cxrl[k][0]*DX[ix];
+
+//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
+    			}
+    			*//*
+
+
+    			//for top boundaries, dirichlet condition
+    			if(jy==NY)
+    			{
+    				tempcob=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcob=tempcob-(cvx[k][kk]+cyrr[k][kk]-cyll[k][kk])*epsil[ix][jy]*acyrr[kk][0]*DY[jy]/DX[ix];
+    				}
+    				tempcob=tempcob+c11*cyrr[k][0]*DY[jy];
+
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pright;
+    			}
+
+    			if(jy==NY-1)
+    			{
+    				tempcob=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcob=tempcob-cylr[k][kk]*epsil[ix+1][jy]*acyrr[kk][0]*DY[jy]/DX[ix+1];
+    				}
+
+
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pright;
+    			}
+
+
+    			//for right boundaries, dirichlet condition in [xc,xd]
+    			if(ix==NX&&CX[jy]>=xc&&CX[jy]<=xd)
+    			{
+    				tempcob=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcob=tempcob-(cvy[k][kk]+cxrr[k][kk]-cxll[k][kk])*epsil[ix][jy]*acxrr[kk][0]*DX[ix]/DY[jy];
+    				}
+    				tempcob=tempcob+c11*cxrr[k][0]*DX[ix];
+
+    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
+    			}
+
+    			if(ix==NX-1&&CX[jy]>=xc&&CX[jy]<=xd)
+    			{
+    				tempcob=0.;
+    				for(kk=0;kk<=mpto;kk++)
+    				{
+    					tempcob=tempcob-cxlr[k][kk]*epsil[ix][jy+1]*acxrr[kk][0]*DX[ix]/DY[jy+1];
+    				}
+    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
+    			}
+    		}
+			*/
     	}
 
     	//  	if(ix==2&&jy==2) printf("2, coefr %8.6g, %8.6g,%8.6g\n ",ff[0][2][2],ff[1][2][2],ff[2][2][2]);

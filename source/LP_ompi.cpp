@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=24, Nv=16, nT=10, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=16, Nv=16, nT=0, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -377,6 +377,23 @@ int main()
 		SetInit_2H(U);																				// set initial DG solution with the 2Hump IC. For the first time run t=0, use this to give init solution (otherwise, comment out)
 		#endif
 	#endif
+
+	  /*
+	  if(myrank_mpi == 0)
+	  {
+		  for(int i1=0; i1<Nx; i1++)
+		  {
+			  for(int i2=0; i2<Nx; i2++)
+			  {
+				  k = i1*Nx*size_v + i2*size_v + 3*Nv*Nv + 3*Nv + 3;
+				  for(l=0; l<7; l++)
+				  {
+					  printf("i1 = %d, i2 = %d, U[%d*7+%d] = %g \n", i1, i2, k, l, U[k*7+l]);
+				  }
+			  }
+		  }
+	  }
+	 */
 
 	/* SETUP THE DG FORMULATION FOR POISSON'S EQUATION */
 	adim();

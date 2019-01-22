@@ -66,12 +66,12 @@ double f_marg2D_x1x2(vector<double>& U_vals0, int i1, int i2, double x1, double 
 	double x1_dif, x2_dif, retn;																// declare x1_dif (to store x1 - x_i1), x2_dif (to store x2 - x_i2) & retn (the value of the marginal evaluated at the given x1 & x2 to be returned at the end
 
 	x1_dif = x1 -  Gridx((double)i1);															// set x1_dif to x1 - x_i1
-	x2_dif = x2 - Gridv((double)i2);															// set x2_dif to x2 - x_i2
+	x2_dif = x2 - Gridx((double)i2);															// set x2_dif to x2 - x_i2
 	k0 = (i1*Nx + i2)*size_v;																	// set k0 to i1*NxNv^3 + i2*Nv^3
 	retn = 0;																					// initialise fM_val at 0, since the value is calculated through a sum
 
 	//#pragma omp parallel for schedule(dynamic) private(j2,j2N,j3,k)  shared(U,Nv,k0,dx,dv,x_dif,v1_dif) reduction(+:retn)
-	for(j1=0; j1<Nx; j1++)
+	for(j1=0; j1<Nv; j1++)
 	{
 		j1NN = j1*Nv*Nv;																		// set j1NN to j1*Nv^2
 		for(j2=0; j2<Nv; j2++)
