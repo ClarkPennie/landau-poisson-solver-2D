@@ -1065,7 +1065,8 @@ if(*info!=0) cout << "error in factorizing " << *info << endl;
 void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vector<double>& phiy)
 {
 	int i,j,k,kk,ix,jy,m,n,ii;
-	int i1NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;
+//	int i1NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x1 direction
+	int i1NvNvNv, i2NxNvNvNv, j1NvNv, j2Nv;		// Dirichlet x2 direction
 	int ii_l, j_l;
     double w;
     int nrhs;
@@ -1079,10 +1080,12 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     // functions in velocity, they integrate to zero, so the solution is the space part times dv^3.
     for(int i1=0; i1<NX; i1++)
     {
-    	i1NxNvNvNv = i1*Nx*Nv*Nv*Nv;
+//    	i1NxNvNvNv = i1*Nx*Nv*Nv*Nv;			// Dirichlet x1 direction
+    	i1NvNvNv = i1*Nv*Nv*Nv;					// Dirichlet x2 direction
     	for(int i2=0; i2<NY; i2++)
     	{
-        	i2NvNvNv = i2*Nv*Nv*Nv;
+//        	i2NvNvNv = i2*Nv*Nv*Nv;				// Dirichlet x1 direction
+        	i2NxNvNvNv = i2*Nx*Nv*Nv*Nv;		// Dirichlet x2 direction
     		rt[i1+1][i2+1] = rx[i1+1][i2+1] = ry[i1+1][i2+1] = 0.;
     		for(int j1=0; j1<Nv; j1++)
     		{
@@ -1092,7 +1095,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				j2Nv = j2*Nv;
     				for(int j3=0; j3<Nv; j3++)
     				{
-    					k = i1NxNvNvNv + i2NvNvNv + j1NvNv + j2Nv + j3;
+    					k = i1NvNvNv + i2NxNvNvNv + j1NvNv + j2Nv + j3;
     					rt[i1+1][i2+1] += scalev*(Ut[7*k+0] + 0.25*Ut[7*k+6]);
     					rx[i1+1][i2+1] += scalev*Ut[7*k+1];		// Note that Poisson basis functions are the same as Chenglong's even though Jose's are 2 times Chenglong's
     					ry[i1+1][i2+1] += scalev*Ut[7*k+2];
@@ -1107,7 +1110,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     //for every cell, the integral of rhs times test function
     for(ix=1;ix<=NX;ix++)
     {
-    	pybc = POT[ix][1];	 // DEBUG Fix y boundary conditions
+//    	pybc = POT[ix][1];	 // DEBUG Fix y boundary conditions
     	/*
     	if(myrank_mpi==0)
     	{
@@ -1162,7 +1165,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 
 
     			//for bottom boundaries, dirichlet condition
-    			/* try no Dirichlet on bottom...
+    			/* try no Dirichlet on bottom...*/
     			if(jy==1)
     			{
     				tempcob=0.;
@@ -1172,10 +1175,10 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				}
     				tempcob=tempcob-c11*cxrl[k][0]*DX[ix];
 
-//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
-    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
+    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
+//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
-    			*/
+    			/**/
 
 
     			//for right boundaries, dirichlet condition
@@ -1225,97 +1228,11 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				{
     					tempcob=tempcob-cxlr[k][kk]*epsil[ix][jy+1]*acxrr[kk][0]*DX[ix]/DY[jy+1];
     				}
-    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
-    			}
-    		}
-
-
-    		/* DIRICHLET IN x2 DIRECTION
-    		for(k=0;k<=mpto;k++)
-    		{
-    			//for bottom boundaries, dirichlet condition
-    			if(jy==1)
-    			{
-    				tempcol=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcol=tempcol-(cvx[k][kk]-cyll[k][kk])*epsil[ix][jy]*acyrl[kk][0]*DY[jy]/DX[ix];
-    				}
-    				tempcol=tempcol-c11*cyrl[k][0]*DY[jy];
-    				ff[k][ix][jy]=ff[k][ix][jy]-tempcol*pleft;
-    			}
-
-
-    			//for bottom boundaries, dirichlet condition
-    			/* try no Dirichlet on bottom...
-    			if(jy==1)
-    			{
-    				tempcob=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcob=tempcob-(cvy[k][kk]-cxll[k][kk])*epsil[ix][jy]*acxrl[kk][0]*DX[ix]/DY[jy];
-    				}
-    				tempcob=tempcob-c11*cxrl[k][0]*DX[ix];
-
-//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
-    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
-    			}
-    			*//*
-
-
-    			//for top boundaries, dirichlet condition
-    			if(jy==NY)
-    			{
-    				tempcob=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcob=tempcob-(cvx[k][kk]+cyrr[k][kk]-cyll[k][kk])*epsil[ix][jy]*acyrr[kk][0]*DY[jy]/DX[ix];
-    				}
-    				tempcob=tempcob+c11*cyrr[k][0]*DY[jy];
-
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pright;
-    			}
-
-    			if(jy==NY-1)
-    			{
-    				tempcob=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcob=tempcob-cylr[k][kk]*epsil[ix+1][jy]*acyrr[kk][0]*DY[jy]/DX[ix+1];
-    				}
-
-
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pright;
-    			}
-
-
-    			//for right boundaries, dirichlet condition in [xc,xd]
-    			if(ix==NX&&CX[jy]>=xc&&CX[jy]<=xd)
-    			{
-    				tempcob=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcob=tempcob-(cvy[k][kk]+cxrr[k][kk]-cxll[k][kk])*epsil[ix][jy]*acxrr[kk][0]*DX[ix]/DY[jy];
-    				}
-    				tempcob=tempcob+c11*cxrr[k][0]*DX[ix];
-
-    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
     				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
-    			}
-
-    			if(ix==NX-1&&CX[jy]>=xc&&CX[jy]<=xd)
-    			{
-    				tempcob=0.;
-    				for(kk=0;kk<=mpto;kk++)
-    				{
-    					tempcob=tempcob-cxlr[k][kk]*epsil[ix][jy+1]*acxrr[kk][0]*DX[ix]/DY[jy+1];
-    				}
-    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
-    				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
+    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
     		}
-			*/
+
     	}
 
     	//  	if(ix==2&&jy==2) printf("2, coefr %8.6g, %8.6g,%8.6g\n ",ff[0][2][2],ff[1][2][2],ff[2][2][2]);

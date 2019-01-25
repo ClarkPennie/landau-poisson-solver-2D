@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=16, Nv=16, nT=0, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=16, Nv=16, nT=5, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -401,7 +401,7 @@ int main()
 	config();
 	setup_pois();
 	setup_matrix();
-	InitPOT();
+//	InitPOT();
 
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;					// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
