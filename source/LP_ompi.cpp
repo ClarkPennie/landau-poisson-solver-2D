@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=16, Nv=16, nT=5, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=32, Nv=16, nT=5, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -343,7 +343,7 @@ int main()
 			buffer_margx1x2[120], buffer_ent[120];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_x2directionICs");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_x1directionICs");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -365,7 +365,7 @@ int main()
 
 	#ifdef First																					// only do this if First was defined (setting initial conditions)
 		#ifdef Damping																				// only do this if Damping was defined
-		SetInit_LD_x2(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
+		SetInit_LD_x1(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
 		#endif
 		#ifdef TwoStream																			// only do this if TwoStream was defined
 		SetInit_LD_x1(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
