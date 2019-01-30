@@ -109,6 +109,7 @@ extern double ce, *cp, *intE, *intE1, *intE2;														// declare ce and poi
 extern vector<double> IE_X, IXE_X, IYE_X, IXXE_X, IXYE_X, IYYE_X;									// declare vectors to store the integrals of the field in the x direction in each space cell (see PoissonVariables.cpp for an explanation of each vector)
 extern vector<double> IE_Y, IXE_Y, IYE_Y, IXXE_Y, IXYE_Y, IYYE_Y;									// declare vectors to store the integrals of the field in the y direction in each space cell(see PoissonVariables.cpp for an explanation of each vector)
 extern vector<double> SE_X, SE_Y;																	// declare vectors to store the sign of the components of the electric field in the each space cell
+extern vector<double> PoisTemp;																		// declare vector PoisTemp for use when the using a 1D IC in the x2 direction
 
 extern fftw_plan p_forward; 																		// declare the fftw_plan p_forward (an object which contains all the data which allows fftw3 to compute the FFT)
 extern fftw_plan p_backward; 																		// declare the fftw_plan p_backward (an object which contains all the data which allows fftw3 to compute the inverse FFT)

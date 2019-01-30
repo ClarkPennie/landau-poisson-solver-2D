@@ -89,6 +89,7 @@ vector<double> IE_Y(NX*NYREAL),
 				IXE_Y(NX*NYREAL), IYE_Y(NX*NYREAL),
 				IXXE_Y(NX*NYREAL), IXYE_Y(NX*NYREAL), IYYE_Y(NX*NYREAL);							// declare vectors to store the integrals of the field in the y direction in each space cell(see PoissonVariables.cpp for an explanation of each vector)
 vector<double> SE_X(NX*NYREAL), SE_Y(NX*NYREAL);													// declare vectors to store the sign of the components of the electric field in the each space cell
+vector<double> PoisTemp(3*NX*NYREAL,0);																// declare vector PoisTemp for use when the using a 1D IC in the x2 direction
 
 // SET UP FFT PLANS (WHICH ARE USED MULTIPLE TIMES):
 fftw_plan p_forward; 																				// declare the fftw_plan p_forward (an object which contains all the data which allows fftw3 to compute the FFT)
@@ -174,7 +175,7 @@ int main()
 		chunk_Nx = size_x/nprocs_mpi + 1;																// if nprocs_mpi does not divide into Nx, set chunk_Nx to Nx/nprocs_mpi + 1
 	}
 
-	nprocs_Nx = (int)((double)Nx/(double)chunk_Nx + 0.5);											// set nprocs_Nx to Nx/chunk_Nx + 0.5 and store the result as an integer
+	nprocs_Nx = (int)((double)size_x/(double)chunk_Nx + 0.5);											// set nprocs_Nx to Nx/chunk_Nx + 0.5 and store the result as an integer
  
 	Utmp = (double*)malloc(chunksize_dg*7*sizeof(double));											// allocate enough space at the pointer Utmp for 6*chunksize_dg many floating point numbers
 	// H[i] = (double*)malloc(6*sizeof(double));}
@@ -343,7 +344,7 @@ int main()
 			buffer_margx1x2[120], buffer_ent[120];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_x1directionICs");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_x2directionICs");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -365,7 +366,7 @@ int main()
 
 	#ifdef First																					// only do this if First was defined (setting initial conditions)
 		#ifdef Damping																				// only do this if Damping was defined
-		SetInit_LD_x1(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
+		SetInit_LD_x2(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
 		#endif
 		#ifdef TwoStream																			// only do this if TwoStream was defined
 		SetInit_LD_x1(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
