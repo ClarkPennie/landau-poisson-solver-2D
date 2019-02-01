@@ -341,10 +341,10 @@ int main()
 
 	char buffer_moment[120], buffer_u[120], buffer_ufull[120], buffer_flags[100],
 			buffer_phi[120], buffer_Ex1[120], buffer_Ex2[120], buffer_margx1v1[120],
-			buffer_margx1x2[120], buffer_ent[120];													// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
+			buffer_margx2v2[120], buffer_margx1x2[120], buffer_ent[120];							// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx2v2 (to store the name of the file where the marginals in the x2 & v2 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_x2directionICs");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_TestNewMargFile");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -353,6 +353,8 @@ int main()
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is U2stream_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_ufull
 	sprintf(buffer_margx1v1,"Data/Marginals_x1v1_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x1v1_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	sprintf(buffer_margx2v2,"Data/Marginals_x2v2_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x2v2_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_margx1x2,"Data/Marginals_x1x2_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x1x2_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_phi,"Data/PhiVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -404,7 +406,7 @@ int main()
 	setup_matrix();
 //	InitPOT();
 
-	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;					// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
+	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x2v2, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;	// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x2v2 (which will store the values of the marginals in the x2 & v2 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
 	if(myrank_mpi==0)																				// only the process with rank 0 will do this
 	{
@@ -457,12 +459,13 @@ int main()
       
 		fmom=fopen(buffer_moment,"w");																// set fmom to be a file with the name stored in buffer_moment and set the file access mode of fmom to w (which creates an empty file and allows it to be written to)
 		fu=fopen(buffer_u, "w");																	// set fu to be a file with the name stored in buffer_u and set the file access mode of fu to w (which creates an empty file and allows it to be written to)
-		fmarg_x1v1=fopen(buffer_margx1v1,"w");														// set fmarg_x1v1 to be a file with the name stored in buffer_marg_x1v1 and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
-		fmarg_x1x2=fopen(buffer_margx1x2,"w");														// set fmarg_x1x2 to be a file with the name stored in buffer_marg_x1x2 and set the file access mode of fmarg to w (which creates an empty file and allows it to be written to)
-		fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
-		fEx1=fopen(buffer_Ex1,"w");																	// set fEx1 to be a file with the name stored in buffer_Ex1 and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
-		fEx2=fopen(buffer_Ex2,"w");																	// set fEx2 to be a file with the name stored in buffer_Ex2 and set the file access mode of fphi to w (which creates an empty file and allows it to be written to)
-		fent=fopen(buffer_ent,"w");																	// set fent to be a file with the name stored in buffer_ent and set the file access mode of fent to w (which creates an empty file and allows it to be written to)
+		fmarg_x1v1=fopen(buffer_margx1v1,"w");														// set fmarg_x1v1 to be a file with the name stored in buffer_marg_x1v1 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fmarg_x2v2=fopen(buffer_margx2v2,"w");														// set fmarg_x2v2 to be a file with the name stored in buffer_marg_x2v2 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fmarg_x1x2=fopen(buffer_margx1x2,"w");														// set fmarg_x1x2 to be a file with the name stored in buffer_marg_x1x2 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fEx1=fopen(buffer_Ex1,"w");																	// set fEx1 to be a file with the name stored in buffer_Ex1 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fEx2=fopen(buffer_Ex2,"w");																	// set fEx2 to be a file with the name stored in buffer_Ex2 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		fent=fopen(buffer_ent,"w");																	// set fent to be a file with the name stored in buffer_ent and set the file access mode to w (which creates an empty file and allows it to be written to)
 
 		//FindNegVals(U, fNegVals, fAvgVals);															// find out in which cells the approximate solution goes negative and record it in fNegVals
 
@@ -501,8 +504,8 @@ int main()
 		fprintf(fufull,"\n\n");
 		#endif*/
 
-		PrintMarginalLoc(fmarg_x1v1, fmarg_x1x2);													// print the values of x1 & v1 and x1 & x2 that the marginals will be evaluated at in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
-		PrintMarginal(U, fmarg_x1v1, fmarg_x1x2);													// print the (x1,v1) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
+		PrintMarginalLoc(fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);										// print the values of x1 & v1, x2 & v2 and x1 & x2 that the marginals will be evaluated at in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
+		PrintMarginal(U, fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);										// print the (x1,v1), (x2,v2) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
 	    PrintFieldLoc(fphi, fEx1, fEx2);															// print the values of x1 & x2 that the potential and field will be evaluated at in the files tagged as fphi, fEx1 & fEx2
 	    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);											// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 	}
@@ -626,10 +629,10 @@ int main()
 			  #endif*/
       
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
-		    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
+		    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);										// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 			if(t%20==0)
 			{
-				PrintMarginal(U, fmarg_x1v1, fmarg_x1x2);											// print the (x1,v1) & (x1,x2) marginal distributions, using the DG coefficients in U, in the files tagged as fmarg_x1v1 & fmarg_x1x2, respectively
+				PrintMarginal(U, fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);								// print the (x1,v1), (x2,v2) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
 			}
 		}
 	
@@ -654,6 +657,7 @@ int main()
 	{
 		fclose(fmom);  																				// remove the tag fmom to close the file
 		fclose(fmarg_x1v1);  																		// remove the tag fmarg_x1v1 to close the file
+		fclose(fmarg_x2v2);  																		// remove the tag fmarg_x2v2 to close the file
 		fclose(fmarg_x1x2);  																		// remove the tag fmarg_x1x2 to close the file
 		fclose(fphi);  																				// remove the tag fphi to close the file
 		fclose(fEx1);  																				// remove the tag fphi to close the file
