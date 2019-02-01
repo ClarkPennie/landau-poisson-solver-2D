@@ -103,6 +103,8 @@ int *fNegVals;																						// declare fNegVals (to store where DG solut
 double *fAvgVals;																					// declare fAvgVals (to store the average values of f on each cell)
 double *fEquiVals;																					// declare f_equivals (to store the equilibrium solution)
 
+bool SwapPoisBCs;																					// declare SwampPoisBCs (a Boolean option to switch the components for Dirichlet & Neumann BCs for Poisson's equation - When false: Dirichlet is in x1-direction, When true: Dirichlet is in x2-direction)
+
 int main()
 {
 	int i, j, k, j1, j2, j3, l; 																	// declare i, j, k (counters), j1, j2, j3 (velocity space counters) & l (the index of the current DG basis function being integrated against)
@@ -112,8 +114,8 @@ int main()
 	double ent1, l_ent1, ll_ent1; //, ent2, l_ent2, ll_ent2;										// declare ent1 (the entropy with negatives discarded), l_ent1 (log of the ent1), ll_ent1 (log of log of ent1), ent2 (the entropy with average values of f), l_ent2 (log of the ent2), ll_ent2 (log of log of ent2)
 	vector<double> U(7*size, 0);																	// declare the vector U (to store the coefficients of the DG approximation to the electron pdf, where entry 7*(i1NxNv^3+i2Nv^3+j1Nv^2+j2Nv+j3)+k is the coefficient of the basis function supported on cell (i1, i2, j1, j2, j3) with shape k)
 	vector<double> POTC(3*NX*NYREAL);																// declare the vector POTC (to store the coefficients of the LDG approximation to the electric potential, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
-	vector<double> phix(3*NX*NYREAL,0), phiy(3*NX*NYREAL,0);											// declare the vectors phix & phiy (to store the coefficients of the LDG approximation to the electric field, in the x & y directions, respectively, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
-	double **f, *output_buffer;//, **conv_weights_local;										// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
+	vector<double> phix(3*NX*NYREAL,0), phiy(3*NX*NYREAL,0);										// declare the vectors phix & phiy (to store the coefficients of the LDG approximation to the electric field, in the x & y directions, respectively, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
+	double **f, *output_buffer;//, **conv_weights_local;											// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
 	double **conv_weights, **conv_weights_linear;													// declare a pointer to conv_weights (a matrix of the weights for the convolution in Fourier space of single species collisions) conv_weights_linear (a matrix of convolution weights in Fourier space of two species collisions)
   
 	fftw_complex *qHat, *qHat_linear;																// declare pointers to the complex numbers qHat (the DFT of Q) & qHat_linear (the DFT of the two species colission operator Q);
@@ -404,6 +406,7 @@ int main()
 	config();
 	setup_pois();
 	setup_matrix();
+	SwapPoisBCs = true;
 //	InitPOT();
 
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x2v2, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;	// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x2v2 (which will store the values of the marginals in the x2 & v2 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
