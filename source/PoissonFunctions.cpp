@@ -1065,8 +1065,8 @@ if(*info!=0) cout << "error in factorizing " << *info << endl;
 void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vector<double>& phiy)
 {
 	int i,j,k,kk,ix,jy,m,n,ii,ii_2;
-	int i1NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x1 direction
-//	int i1NvNvNv, i2NxNvNvNv, j1NvNv, j2Nv;		// Dirichlet x2 direction
+//	int i1NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x1 direction
+	int i1NvNvNv, i2NxNvNvNv, j1NvNv, j2Nv;		// Dirichlet x2 direction
 	int ii_l, j_l;
     double w;
     int nrhs;
@@ -1080,12 +1080,12 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     // functions in velocity, they integrate to zero, so the solution is the space part times dv^3.
     for(int i1=0; i1<NX; i1++)
     {
-    	i1NxNvNvNv = i1*Nx*Nv*Nv*Nv;			// Dirichlet x1 direction
-//    	i1NvNvNv = i1*Nv*Nv*Nv;					// Dirichlet x2 direction
+//    	i1NxNvNvNv = i1*Nx*Nv*Nv*Nv;			// Dirichlet x1 direction
+    	i1NvNvNv = i1*Nv*Nv*Nv;					// Dirichlet x2 direction
     	for(int i2=0; i2<NY; i2++)
     	{
-        	i2NvNvNv = i2*Nv*Nv*Nv;				// Dirichlet x1 direction
-//        	i2NxNvNvNv = i2*Nx*Nv*Nv*Nv;		// Dirichlet x2 direction
+//        	i2NvNvNv = i2*Nv*Nv*Nv;				// Dirichlet x1 direction
+        	i2NxNvNvNv = i2*Nx*Nv*Nv*Nv;		// Dirichlet x2 direction
     		rt[i1+1][i2+1] = rx[i1+1][i2+1] = ry[i1+1][i2+1] = 0.;
     		for(int j1=0; j1<Nv; j1++)
     		{
@@ -1095,14 +1095,14 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				j2Nv = j2*Nv;
     				for(int j3=0; j3<Nv; j3++)
     				{
-    					k = i1NxNvNvNv + i2NvNvNv + j1NvNv + j2Nv + j3;		// Dirichlet x1 direction
-//    					k = i1NvNvNv + i2NxNvNvNv + j1NvNv + j2Nv + j3;		// Dirichlet x2 direction
+//    					k = i1NxNvNvNv + i2NvNvNv + j1NvNv + j2Nv + j3;		// Dirichlet x1 direction
+    					k = i1NvNvNv + i2NxNvNvNv + j1NvNv + j2Nv + j3;		// Dirichlet x2 direction
     					// Note that Poisson basis functions are the same as Chenglong's even though Jose's are 2 times Chenglong's
     					rt[i1+1][i2+1] += scalev*(Ut[7*k+0] + 0.25*Ut[7*k+6]);
-    					rx[i1+1][i2+1] += scalev*Ut[7*k+1];		// Dirichlet in x1 direction
-    					ry[i1+1][i2+1] += scalev*Ut[7*k+2];		// Dirichlet in x1 direction
-//    					rx[i1+1][i2+1] += scalev*Ut[7*k+2];		// Dirichlet in x2 direction
-//    					ry[i1+1][i2+1] += scalev*Ut[7*k+1];		// Dirichlet in x2 direction
+//    					rx[i1+1][i2+1] += scalev*Ut[7*k+1];		// Dirichlet in x1 direction
+//    					ry[i1+1][i2+1] += scalev*Ut[7*k+2];		// Dirichlet in x1 direction
+    					rx[i1+1][i2+1] += scalev*Ut[7*k+2];		// Dirichlet in x2 direction
+    					ry[i1+1][i2+1] += scalev*Ut[7*k+1];		// Dirichlet in x2 direction
 
     				}
     			}
@@ -1485,11 +1485,15 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			{
 				POTC[3*ii+k]=PoisTemp[3*ii+k];
 			}
-			PoisTemp[3*ii]=phix[3*ii_2];
-			PoisTemp[3*ii+1]=phix[3*ii_2+2];
-			PoisTemp[3*ii+2]=phix[3*ii_2+1];
+			PoisTemp[3*ii]=phiy[3*ii_2];
+			PoisTemp[3*ii+1]=phiy[3*ii_2+2];
+			PoisTemp[3*ii+2]=phiy[3*ii_2+1];
+			phiy[3*ii_2]=phix[3*ii];
+			phiy[3*ii_2+1]=phix[3*ii+2];
+			phiy[3*ii_2+2]=phix[3*ii+1];
 		}
 	}
+	/*
 	for(ix=1;ix<=NX;ix++)
 	{
 		for(jy=1;jy<=NYREAL;jy++)
@@ -1500,11 +1504,12 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			{
 				phix[3*ii+k]=PoisTemp[3*ii+k];
 			}
-			PoisTemp[3*ii]=phiy[3*ii_2];
-			PoisTemp[3*ii+1]=phiy[3*ii_2+2];
-			PoisTemp[3*ii+2]=phiy[3*ii_2+1];
+			PoisTemp[3*ii]=phix[3*ii_2];
+			PoisTemp[3*ii+1]=phix[3*ii_2+2];
+			PoisTemp[3*ii+2]=phix[3*ii_2+1];
 		}
 	}
+	*/
 	for(ix=1;ix<=NX;ix++)
 	{
 		for(jy=1;jy<=NYREAL;jy++)
@@ -1513,10 +1518,11 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			ii_2 = (jy-1)*NX + ix-1;
 			for(k=0;k<=mpto;k++)
 			{
-				phiy[3*ii+k]=PoisTemp[3*ii+k];
+				phix[3*ii+k]=PoisTemp[3*ii+k];
 			}
 		}
 	}
+
 
 
 	// evaluate the integrals related to the electric field
