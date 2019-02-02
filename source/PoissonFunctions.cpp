@@ -1065,17 +1065,7 @@ if(*info!=0) cout << "error in factorizing " << *info << endl;
 void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vector<double>& phiy)
 {
 	int i,j,k,kk,ix,jy,m,n,ii,ii_2;
-	int i1NvNvNv, i1NxNvNvNv, i2NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x2 direction
-	/*
-	if(SwapPoisBCs)
-	{
-		int i1NvNvNv, i1NxNvNvNv, i2NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x2 direction
-	}
-	else
-	{
-		int i1NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;		// Dirichlet x1 direction
-	}
-	*/
+	int i1NvNvNv, i1NxNvNvNv, i2NxNvNvNv, i2NvNvNv, j1NvNv, j2Nv;
 	int ii_l, j_l;
     double w;
     int nrhs;
@@ -1147,30 +1137,8 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     //for every cell, the integral of rhs times test function
     for(ix=1;ix<=NX;ix++)
     {
-//    	pybc = POT[ix][1];	 // DEBUG Fix y boundary conditions
-    	/*
-    	if(myrank_mpi==0)
-    	{
-    		printf("ix = %d: pybc = %g; ", ix, pybc);
-    	}
-    	*/
     	for(jy=1;jy<=NYREAL;jy++)
     	{
-    		/*
-			 for(k=0;k<=mpto;k++)
-			 {
-				 ff[k][ix][jy]=0.;
-				 for(kx=1;kx<=k01;kx++)
-				 {
-					 for(ky=1;ky<=k01;ky++)
-					 {
-						 ff[k][ix][jy]=ff[k][ix][jy]
-							 +rhs(CX[ix]+gauss[kx][1]*DX[ix],CY[jy]+gauss[ky][1]*DY[jy])
-							 *cxy[k][kx][ky]*gaut[kx][ky];
-					 }
-				 }
-    		 */
-
     		for(k=0;k<=mpto;k++)
 			{
     			ff[k][ix][jy]=0.;
@@ -1202,7 +1170,6 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 
 
     			//for bottom boundaries, dirichlet condition
-    			/* try no Dirichlet on bottom...*/
     			if(jy==1)
     			{
     				tempcob=0.;
@@ -1213,9 +1180,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				tempcob=tempcob-c11*cxrl[k][0]*DX[ix];
 
     				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pbot;	// DEBUG Fix y boundary conditions
-//    				ff[k][ix][jy]=ff[k][ix][jy]-tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
-    			/**/
 
 
     			//for right boundaries, dirichlet condition
@@ -1254,7 +1219,6 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     				}
     				tempcob=tempcob+c11*cxrr[k][0]*DX[ix];
 
-    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
     				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
     			}
 
@@ -1266,7 +1230,6 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
     					tempcob=tempcob-cxlr[k][kk]*epsil[ix][jy+1]*acxrr[kk][0]*DX[ix]/DY[jy+1];
     				}
     				ff[k][ix][jy]=ff[k][ix][jy]+tempcob*ptop;	// DEBUG Fix y boundary conditions
-    				//ff[k][ix][jy]=ff[k][ix][jy]+tempcob*pybc;	// DEBUG Fix y boundary conditions
     			}
     		}
 
@@ -1414,16 +1377,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 		{
 			ii = (ix-1)*NX + jy-1;
 			ii_l = (ix-1)*NX + jy-2;
-			/* jy=1 case taken care of next with Neumann BC!
-			if(jy > 1) // May be necessary when jy = 1 as then ii_l < 0
-			{
-				ii_l = (ix-1)*NX + jy-2;
-			}
-			else
-			{
-				ii_l = ii;
-			}
-			*/
+			/* jy=1 case taken care of next with Neumann BC! */
 			for(k=0;k<=mpto;k++)
 			{
 				phiy[3*ii+k]=0.;
@@ -1459,27 +1413,6 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			phiy[3*ii+k]=0.;
 		}
 		phiy[3*ii]=-POTC[3*ii+2]/DY[jy];	// There's a chance this not be negative...?
-
-		/*
-		jy=NYREAL;
-		ii = (ix-1)*NX + jy-1;
-		ii_l = (ix-1)*NX + jy-2;,,m,
-		if(CX[ix]>=xc&&CX[ix]<=xd)
-		{
-			for(k=0;k<=mpto;k++)
-			{
-				phiy[3*ii+k]=0.;
-				for(kk=0;kk<=mpto;kk++)
-				{
-					j = (mpto+1)*ii + kk;
-					j_l = (mpto+1)*ii_l + kk;
-					phiy[3*ii+k]=phiy[3*ii+k]+acvy[k][kk]*POTC[3*ii+kk]-acxrl[k][kk]*POTC[3*ii_l+kk];
-				}
-				phiy[3*ii+k]=phiy[3*ii+k]+acxrr[k][0]*pybc;
-				phiy[3*ii+k]=-phiy[3*ii+k]/DY[jy];
-			}
-		}
-		*/
 	}
 
 	for(ix=1;ix<=NX;ix++)
@@ -1526,23 +1459,7 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 				phiy[3*ii_2+2]=phix[3*ii+1];
 			}
 		}
-		/*
-		for(ix=1;ix<=NX;ix++)
-		{
-			for(jy=1;jy<=NYREAL;jy++)
-			{
-				ii = (ix-1)*NYREAL + jy-1;
-				ii_2 = (jy-1)*NX + ix-1;
-				for(k=0;k<=mpto;k++)
-				{
-					phix[3*ii+k]=PoisTemp[3*ii+k];
-				}
-				PoisTemp[3*ii]=phix[3*ii_2];
-				PoisTemp[3*ii+1]=phix[3*ii_2+2];
-				PoisTemp[3*ii+2]=phix[3*ii_2+1];
-			}
-		}
-		*/
+
 		for(ix=1;ix<=NX;ix++)
 		{
 			for(jy=1;jy<=NYREAL;jy++)
@@ -1569,23 +1486,6 @@ void pois2d(vector<double>& Ut, vector<double>& POTC, vector<double>& phix, vect
 			ii = i*NX + j;
 			xb = CX[i+1] + DX[NX]/2.;
 
-			/*
-			IE_X[i][j] = phix[0][i][j];
-			IXE_X[i][j] = phix[1][i][j]/6.;
-			IYE_X[i][j] = phix[2][i][j]/6.;
-			IXXE_X[i][j] =phix[0][i][j]/3.;
-			IXYE_X[i][j] = 0.;
-			IYYE_X[i][j] = phix[0][i][j]/3.;
-
-			IE_Y[i][j] = phiy[0][i][j];
-			IXE_Y[i][j] = phiy[1][i][j]/6.;
-			IYE_Y[i][j] = phiy[2][i][j]/6.;
-			IXXE_Y[i][j] = phiy[0][i][j]/3.;
-			IXYE_Y[i][j] = 0.;
-			IYYE_Y[i][j] = phiy[0][i][j]/3.;
-			*/
-
-			// WILL NEED TO CHANGE THIS ALL TO dx*dx* FOR 2D (or dx*dy*)
 			IE_X[ii] = dx*dx*phix[3*ii];
 			IXE_X[ii] = dx*dx*phix[3*ii+1]/12.;	// This one is giving a substantial error
 			IYE_X[ii] = dx*dx*phix[3*ii+2]/12.;

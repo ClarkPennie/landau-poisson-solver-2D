@@ -103,6 +103,7 @@ int *fNegVals;																						// declare fNegVals (to store where DG solut
 double *fAvgVals;																					// declare fAvgVals (to store the average values of f on each cell)
 double *fEquiVals;																					// declare f_equivals (to store the equilibrium solution)
 
+bool Damping1D_x1, Damping1D_x2;																	// declare Boolean variables which will determine the ICs for the problem
 bool SwapPoisBCs;																					// declare SwampPoisBCs (a Boolean option to switch the components for Dirichlet & Neumann BCs for Poisson's equation - When false: Dirichlet is in x1-direction, When true: Dirichlet is in x2-direction)
 
 int main()
@@ -346,7 +347,7 @@ int main()
 			buffer_margx2v2[120], buffer_margx1x2[120], buffer_ent[120];							// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx2v2 (to store the name of the file where the marginals in the x2 & v2 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_TestNewMargFile");														// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_TestKiE");															// store the string "nu0_2D_UvectorCheck" in buffer_flags
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -368,9 +369,22 @@ int main()
 	sprintf(buffer_ent,"Data/EntropyVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is EntropyVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 
+	Damping1D_x1 = true;
+	Damping1D_x2 = false;
+	SwapPoisBCs = false;
+
 	#ifdef First																					// only do this if First was defined (setting initial conditions)
 		#ifdef Damping																				// only do this if Damping was defined
-		SetInit_LD_x2(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
+		if(Damping1D_x1)
+		{
+			SetInit_LD_x1(U);																		// set initial DG solution for 1D Landau Damping in the x1 direction
+			std::cout << "Using the 1D Landau Damping ICs in the x1 direction." << std::endl;
+		}
+		if(Damping1D_x2)
+		{
+			SetInit_LD_x2(U);																		// set initial DG solution for 1D Landau Damping in the x2 direction
+			std::cout << "Using the 1D Landau Damping ICs in the x2 direction." << std::endl;
+		}
 		#endif
 		#ifdef TwoStream																			// only do this if TwoStream was defined
 		SetInit_LD_x1(U);																				// set initial DG solution for Landau Damping. For the first time run t=0, use this to give init solution (otherwise, comment out)
@@ -406,7 +420,6 @@ int main()
 	config();
 	setup_pois();
 	setup_matrix();
-	SwapPoisBCs = true;
 //	InitPOT();
 
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x2v2, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;	// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x2v2 (which will store the values of the marginals in the x2 & v2 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)

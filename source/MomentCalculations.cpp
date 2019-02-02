@@ -35,7 +35,7 @@ double computeKiE(vector<double>& U_vals)
 	int k, i, j,j1,j2,j3;
 	double tmp=0., tp=0., tp1=0.;
 	//#pragma omp parallel for private(k,i,j,j1,j2,j3,tp, tp1) shared(U_vals) reduction(+:tmp)
-	for(k=0;k<Nx*size_v;k++)
+	for(k=0;k<size;k++)
 	{
 		j=k%size_v; i=(k-j)/size_v;
 		j3=j%Nv; j2=((j-j3)%(Nv*Nv))/Nv; j1=(j-j3-j2*Nv)/(Nv*Nv);
