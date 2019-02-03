@@ -438,7 +438,7 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	int i_mod = (k-j_mod)/size_v;																			// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
 	j3 = j_mod%Nv;																							// calculate j3 for the given k
 	j2 = ((j_mod-j3)%(Nv*Nv))/Nv;																			// calculate j2 for the given k
-//	j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
+	j1 = (j_mod-j3-j2*Nv)/(Nv*Nv);																			// calculate j1 for the given k
 	i2 = i_mod%Nx;																							// calculate i2 for the given k
 	i1 = (i_mod - i2)/Nx;																					// calculate i1 for the given k
 	double v_j2 = Gridv((double)j2);																		// declare v_j2 and set it to value of v_2 at the center of cell j_2
@@ -447,7 +447,19 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	{
 		iir=i2+1; iil=i2; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
 //		iir=i1+1; iil=i1; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
-		if(iir==Nx)iir=0; //periodic bc																		// if iir = Nx (the maximum value that can be obtained, since i = 0,1,...,Nx-1) and so this cell is at the right boundary, requiring information from the non-existent cell with space index Nx, since there are periodic boundary conditions, set iir = 0 and use the cell with space index 0 (i.e. the cell at the left boundary)
+		if(iir==Nx)																							// if iir = Nx this cell is at the right boundary, requiring information from the non-existent cell with space index Nx
+		{
+			if(Periodic_x2)
+			{
+				iir=0; //periodic bc																		// for periodic boundary conditions, set iir = 0 and use the cell with space index 0 (i.e. the cell at the left boundary)
+			}
+			else if(SpecReflec_x2)
+			{
+				iir = Nx-1;																					// for specular reflection, use values within the same space cell
+				j2 = Nv - 1 - j2;																			// reflect the v2 component of velocity across 0
+				j_mod = j1*Nv*Nv + j2*Nv + j3;																// replace j_mod with the corresponding value for the new j2
+			}
+		}
 		kkr=i1*Nx*size_v + iir*size_v + j_mod; 																// calculate the value of kkr for this value of iir
 //		kkr=iir*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkr for this value of iir
 		kkl=k;																								// set kkl to k (since iil = i2)
@@ -458,7 +470,19 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	{
 		iir=i2; iil=i2-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
 //		iir=i1; iil=i1-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
-		if(iil==-1)iil=Nx-1; // periodic bc																	// if iil = -1 (the minimum value that can be obtained, since i = 0,1,...,Nx-1) and so this cell is at the left boundary, requiring information from the non-existent cell with space index -1, since there are periodic boundary conditions, set iil = Nx-1 and use the cell with space index Nx-1 (i.e. the cell at the right boundary)
+		if(iil==-1)																							// if iil = -1  this cell is at the left boundary, requiring information from the non-existent cell with space index -1
+		{
+			if(Periodic_x2)
+			{
+				iil=Nx-1; // periodic bc																	// for periodic boundary conditions, set iir = 0 and use the cell with space index 0 (i.e. the cell at the left boundary)
+			}
+			else if(SpecReflec_x2)
+			{
+				iil = 0;																					// for specular reflection, use values within the same space cell
+				j2 = Nv - 1 - j2;																			// reflect the v2 component of velocity across 0
+				j_mod = j1*Nv*Nv + j2*Nv + j3;																// replace j_mod with the corresponding value for the new j2
+			}
+		}
 		kkr=k; 																								// set kkr to k (since iir = i1)
 		kkl=i1*Nx*size_v + iil*size_v + j_mod; 																// calculate the value of kkl for this value of iil
 //		kkl=iil*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkl for this value of iil

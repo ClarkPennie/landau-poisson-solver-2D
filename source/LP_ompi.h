@@ -123,6 +123,7 @@ extern double *fAvgVals;																			// declare fAvgVals (to store the ave
 extern double *fEquiVals;																			// declare f_equivals (to store the equilibrium solution)
 
 extern bool Damping1D_x1, Damping1D_x2;																// declare Boolean variables which will determine the ICs for the problem
+extern bool Periodic_x2, SpecReflec_x2;																// declare Boolean variables which will determine the BCs for the problem
 extern bool SwapPoisBCs;																			// declare SwampPoisBCs (a Boolean option to switch the components for Dirichlet & Neumann BCs for Poisson's equation - When false: Dirichlet is in x1-direction, When true: Dirichlet is in x2-direction)
 
 //extern double a[3];

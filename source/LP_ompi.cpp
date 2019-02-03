@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=32, Nv=16, nT=5, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=32, Nv=16, nT=20, N=8; 												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -104,6 +104,7 @@ double *fAvgVals;																					// declare fAvgVals (to store the average 
 double *fEquiVals;																					// declare f_equivals (to store the equilibrium solution)
 
 bool Damping1D_x1, Damping1D_x2;																	// declare Boolean variables which will determine the ICs for the problem
+bool Periodic_x2, SpecReflec_x2;																	// declare Boolean variables which will determine the BCs for the problem
 bool SwapPoisBCs;																					// declare SwampPoisBCs (a Boolean option to switch the components for Dirichlet & Neumann BCs for Poisson's equation - When false: Dirichlet is in x1-direction, When true: Dirichlet is in x2-direction)
 
 int main()
@@ -347,7 +348,7 @@ int main()
 			buffer_margx2v2[120], buffer_margx1x2[120], buffer_ent[120];							// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx2v2 (to store the name of the file where the marginals in the x2 & v2 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_TestKiE");															// store the string "nu0_2D_UvectorCheck" in buffer_flags
+	sprintf(buffer_flags,"nu0_TestSpecReflec");														// store a string in buffer_flags to tag the files for this run
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -372,6 +373,22 @@ int main()
 	Damping1D_x1 = true;
 	Damping1D_x2 = false;
 	SwapPoisBCs = false;
+	Periodic_x2 = false;
+	SpecReflec_x2 = true;
+
+	if(Periodic_x2)
+	{
+		std::cout << "Using periodic BCs in the x2 direction." << std::endl;
+	}
+	else if(SpecReflec_x2)
+	{
+		std::cout << "Using specular reflection BCs in the x2 direction." << std::endl;
+	}
+	else
+	{
+		std::cout << "An x2 direction BC has not been chosen, program cannot run." << std::endl;
+		exit(0);
+	}
 
 	#ifdef First																					// only do this if First was defined (setting initial conditions)
 		#ifdef Damping																				// only do this if Damping was defined
@@ -380,10 +397,15 @@ int main()
 			SetInit_LD_x1(U);																		// set initial DG solution for 1D Landau Damping in the x1 direction
 			std::cout << "Using the 1D Landau Damping ICs in the x1 direction." << std::endl;
 		}
-		if(Damping1D_x2)
+		else if(Damping1D_x2)
 		{
 			SetInit_LD_x2(U);																		// set initial DG solution for 1D Landau Damping in the x2 direction
 			std::cout << "Using the 1D Landau Damping ICs in the x2 direction." << std::endl;
+		}
+		else
+		{
+			std::cout << "An IC has not been chosen, program cannot run." << std::endl;
+			exit(0);
 		}
 		#endif
 		#ifdef TwoStream																			// only do this if TwoStream was defined
@@ -645,9 +667,9 @@ int main()
 			  #endif*/
       
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
-		    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);										// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 			if(t%20==0)
 			{
+			    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 				PrintMarginal(U, fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);								// print the (x1,v1), (x2,v2) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
 			}
 		}
