@@ -42,10 +42,6 @@ void SetInit_LD_x2(vector<double>& U_vals);
 
 //void SetInit_2H(double *U);
 
-#ifdef MPI
 void setInit_spectral(vector<double>& U_vals, double **f);
-#else
-void setInit_spectral(vector<double>& U_vals, double **f);
-#endif
 
 #endif /* SETINIT_1_H_ */

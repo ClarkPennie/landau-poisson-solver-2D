@@ -175,8 +175,8 @@ void SetInit_LD_x2(vector<double>& U_vals)																			// function to calc
 
 
 
-#ifdef MPI
-void setInit_spectral(double *U, double **f)
+#ifdef UseMPI
+void setInit_spectral(vector<double>& U_vals, double **f)
 {
   int i, j1, j2, j3, k, l, m ,n;
   for(i=chunk_Nx*myrank_mpi;i<chunk_Nx*(myrank_mpi+1) && i<size_x;i++){
@@ -190,7 +190,7 @@ void setInit_spectral(double *U, double **f)
 			j3 = (n*h_v)/dv;
 			if(j3==Nv)j3=Nv-1;
 			k=i*size_v + (j1*Nv*Nv + j2*Nv + j3); // determine in which element the Fourier nodes lie	  
-			f[i%chunk_Nx][l*N*N+m*N+n] = U[k*7+0] + U[k*7+3]*(v[l]-Gridv((double)j1))/dv + U[k*7+4]*(v[m]-Gridv((double)j2))/dv + U[k*7+5]*(v[n]-Gridv((double)j3))/dv + U[k*7+6]*( ((v[l]-Gridv((double)j1))/dv)*((v[l]-Gridv((double)j1))/dv) + ((v[m]-Gridv((double)j2))/dv)*((v[m]-Gridv((double)j2))/dv) + ((v[n]-Gridv((double)j3))/dv)*((v[n]-Gridv((double)j3))/dv) );
+			f[i%chunk_Nx][l*N*N+m*N+n] = U_vals[k*7+0] + U_vals[k*7+3]*(v[l]-Gridv((double)j1))/dv + U_vals[k*7+4]*(v[m]-Gridv((double)j2))/dv + U_vals[k*7+5]*(v[n]-Gridv((double)j3))/dv + U_vals[k*7+6]*( ((v[l]-Gridv((double)j1))/dv)*((v[l]-Gridv((double)j1))/dv) + ((v[m]-Gridv((double)j2))/dv)*((v[m]-Gridv((double)j2))/dv) + ((v[n]-Gridv((double)j3))/dv)*((v[n]-Gridv((double)j3))/dv) );
 		  //BUG: index was "l*N*N+m*N+n*N" !!!!!!
 		}
       }
