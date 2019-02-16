@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=32, Nv=24, nT=2000, N=8;												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=8, Nv=8, nT=1, N=8;												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -39,7 +39,7 @@ double Lx=2*PI/k_wave, Lv=5.25;																		// declare Lx (for 0 < x < Lx) 
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0, dt=0.01; //, nthread=32; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0.05, dt=0.01; //, nthread=32; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef FourHump																						// only do this if FourHump was defined
@@ -348,7 +348,7 @@ int main()
 			buffer_margx2v2[120], buffer_margx1x2[120], buffer_ent[120];							// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx2v2 (to store the name of the file where the marginals in the x2 & v2 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"nu0_SpecReflec_T20");														// store a string in buffer_flags to tag the files for this run
+	sprintf(buffer_flags,"TestCollisions");														// store a string in buffer_flags to tag the files for this run
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
@@ -569,7 +569,7 @@ int main()
 		{
 			setInit_spectral(U, f); 																// Take the coefficient of the DG solution from the advection step, and project them onto the grid used for the spectral method to perform the collision step
 
-			for(l=chunk_Nx*myrank_mpi;l<chunk_Nx*(myrank_mpi+1) && l<Nx;l++) 						// divide the number of discretised space points equally over the number of MPI processes, so that each process receives a different chunk of space to work on
+			for(l=chunk_Nx*myrank_mpi;l<chunk_Nx*(myrank_mpi+1) && l<size_x;l++) 						// divide the number of discretised space points equally over the number of MPI processes, so that each process receives a different chunk of space to work on
 			{
 				#ifdef FullandLinear																// only do this if FullandLinear was defined
 				ComputeQ(f[l%chunk_Nx], qHat, conv_weights, qHat_linear, conv_weights_linear);		// using the coefficients of the current solution stored in f (but only for the chunk of space being taken care of by the current MPI process), calculate the Fourier tranform of Q(f,f) using conv_weights for the weights in the convolution in the full part of Q & conv_weights_linear in the convolution in the linear part of Q, then store the results of each Fourier transform in qHat & qHat_linear, respectively
@@ -606,7 +606,7 @@ int main()
 							MPI_COMM_WORLD, &status);											 	// receive a message of 5*chunk_Nx_size_v entries of datatype MPI_DOUBLE from the process with rank i (storing the i-th space chunk of U, containing the DG coefficients calculate on the processor with corresponding rank), storing the data in output_buffer, with tag i in the communicator MPI_COMM_WORLD, storing the status of the receive in status
 					for(l=0;l<chunk_Nx;l++)															// cycle through all space-steps stored in the chunk of the space interval dealt with by the i-th process
 					{
-						if((chunk_Nx*i+l)<Nx)														// ensure that the space-step being dealt with exists
+						if((chunk_Nx*i+l)<size_x)														// ensure that the space-step being dealt with exists
 						{
 							for(k=0;k<size_v;k++)													// cycle through all size_v (= Nv^3) many velocity-steps (which will exist for each space-step)
 							{

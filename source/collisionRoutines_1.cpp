@@ -722,11 +722,11 @@ int i,j,k, j1, j2, j3, k_v, k_eta, kk, l_local;
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U[k_v*6+0] + U[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U[k_v*6+0]/4. + U[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U[k_v*7+0] + U[k_v*7+6]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U[k_v*7+3] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U[k_v*7+4] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U[k_v*7+5] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U[k_v*7+0]/4. + U[k_v*7+6]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
     dU[(l_local*size_v + kt)*5] = 19*tp0/4. - 15*tp5;
     dU[(l_local*size_v + kt)*5+4] = 60*tp5 - 15*tp0;
@@ -891,11 +891,11 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<dou
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U_vals[k_v*6+0] + U_vals[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U_vals[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U_vals[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U_vals[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U_vals[k_v*6+0]/4. + U_vals[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U_vals[k_v*7+0] + U_vals[k_v*7+6]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U_vals[k_v*7+3] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U_vals[k_v*7+4] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U_vals[k_v*7+5] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U_vals[k_v*7+0]/4. + U_vals[k_v*7+6]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
     dU[(l_local*size_v + kt)*5] = 19*tp0/4. - 15*tp5;
     dU[(l_local*size_v + kt)*5+4] = 60*tp5 - 15*tp0;
@@ -1257,15 +1257,15 @@ void RK4(double *f, int l, fftw_complex *qHat, double **conv_weights, vector<dou
 	//tmp5 += dv*dv*tp5 -  (Gridv((double)j1)*Gridv((double)j1) + Gridv((double)j2)*Gridv((double)j2) + Gridv((double)j3)*Gridv((double)j3))*tp0 + 2*(Gridv((double)j1)*(dv*tp2 + Gridv((double)j1)*tp0) + Gridv((double)j2)*(dv*tp3 + Gridv((double)j2)*tp0) + Gridv((double)j3)*(dv*tp4 + Gridv((double)j3)*tp0));
 	  
     k_v = l*size_v + kt;      
-    tp0 = U_vals[k_v*6+0] + U_vals[k_v*6+5]/4. + dt*tp0/scalev/scaleL/scale3;
-    tp2 = U_vals[k_v*6+2] + dt*tp2*12./scalev/scaleL/scale3;
-    tp3 = U_vals[k_v*6+3] + dt*tp3*12./scalev/scaleL/scale3;
-    tp4 = U_vals[k_v*6+4] + dt*tp4*12./scalev/scaleL/scale3;
-    tp5 = U_vals[k_v*6+0]/4. + U_vals[k_v*6+5]*19./240. + dt*tp5/scalev/scaleL/scale3;
+    tp0 = U_vals[k_v*7+0] + U_vals[k_v*7+6]/4. + dt*tp0/scalev/scaleL/scale3;
+    tp2 = U_vals[k_v*7+3] + dt*tp2*12./scalev/scaleL/scale3;
+    tp3 = U_vals[k_v*7+4] + dt*tp3*12./scalev/scaleL/scale3;
+    tp4 = U_vals[k_v*7+5] + dt*tp4*12./scalev/scaleL/scale3;
+    tp5 = U_vals[k_v*7+0]/4. + U_vals[k_v*7+6]*19./240. + dt*tp5/scalev/scaleL/scale3;
 
-    U_vals[k_v*6+0] = 19*tp0/4. - 15*tp5;
-    U_vals[k_v*6+5] = 60*tp5 - 15*tp0;
-    U_vals[k_v*6+2] = tp2; U_vals[k_v*6+3] = tp3; U_vals[k_v*6+4] = tp4;
+    U_vals[k_v*7+0] = 19*tp0/4. - 15*tp5;
+    U_vals[k_v*7+6] = 60*tp5 - 15*tp0;
+    U_vals[k_v*7+3] = tp2; U_vals[k_v*7+4] = tp3; U_vals[k_v*7+5] = tp4;
   }
 	//printf("RK4: %g, %g, %g, %g, %g\n", tmp0, tmp2, tmp3, tmp4, 0.5*tmp5);  
 }   
