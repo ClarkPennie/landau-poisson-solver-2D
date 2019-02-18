@@ -77,4 +77,6 @@ double I5_v2(vector<double>& U_vals0, int k, int l);
 
 void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vector<double>& phiy);
 
+void RK3_NoField(vector<double>& U_vals);
+
 #endif /* ADVECTION_1_H_ */

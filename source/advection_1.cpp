@@ -1134,6 +1134,147 @@ void RK3(vector<double>& U_vals, vector<double>& POTC, vector<double>& phix, vec
   /////////////////// 3rd step of RK3 done//////////////////////////////////////////////////////// 
 }
 
+void RK3_NoField(vector<double>& U_vals) // RK3 for f_t = H(f)
+{
+  int i, k, l, k_local;
+  double tp0, tp1, tp2, tp3, tp4, tp5, tp6, H[7];
+
+  MPI_Status status;
+
+  #pragma omp parallel for schedule(dynamic)  private(H,k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5) shared(U_vals, Utmp)
+  for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){
+    k_local = k%chunksize_dg;
+
+    tp0=I1(U_vals,k,0)-I3_x1(U_vals,k,0)-I3_x2(U_vals,k,0);
+    tp1=I1(U_vals,k,1)-I3_x1(U_vals,k,1)-I3_x2(U_vals,k,1);
+    tp2=I1(U_vals,k,2)-I3_x1(U_vals,k,2)-I3_x2(U_vals,k,2);
+    tp3=I1(U_vals,k,3)-I3_x1(U_vals,k,3)-I3_x2(U_vals,k,3);
+    tp4=I1(U_vals,k,4)-I3_x1(U_vals,k,4)-I3_x2(U_vals,k,4);
+    tp5=I1(U_vals,k,5)-I3_x1(U_vals,k,5)-I3_x2(U_vals,k,5);
+    tp6=I1(U_vals,k,6)-I3_x1(U_vals,k,6)-I3_x2(U_vals,k,6);
+
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
+    //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+
+    for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l] + dt*H[l];
+  }
+
+  if(myrank_mpi == 0) {
+    //dump the weights we've computed into U1
+    for(k=0;k<chunksize_dg;k++) {
+	for(l=0;l<7;l++) U1[k*7+l] = Utmp[k*7+l];
+    }
+    //receive from all other processes
+    for(i=1;i<nprocs_mpi;i++) {
+	    MPI_Recv(output_buffer_vp, chunksize_dg*7, MPI_DOUBLE, i, i, MPI_COMM_WORLD, &status); // receive weight from other processes consecutively, rank i=1..numNodes-1, ensuring the weights are stored in the file consecutively !
+	    for(k=0;k<chunksize_dg;k++) {
+			for(l=0;l<7;l++)U1[(k + i*chunksize_dg)*7+l] = output_buffer_vp[k*7+l];
+		}
+    }
+  }
+  else  MPI_Send(Utmp, chunksize_dg*7, MPI_DOUBLE, 0, myrank_mpi, MPI_COMM_WORLD);
+
+
+  MPI_Bcast(&U1[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  /*
+  if(myrank_mpi == 0)
+  {
+	  for(k=0; k<size; k++)
+	  {
+		  for(l=0; l<7; l++)
+		  {
+			  printf("U1[%d*7+%d] = %g \n", k, l, U1[k*7+l]);
+		  }
+	  }
+  }
+  */
+  /////////////////// 1st step of RK3 done////////////////////////////////////////////////////////
+
+  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U1,Utmp)
+  for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){
+    k_local = k%chunksize_dg;
+
+    tp0=I1(U1,k,0)-I3_x1(U1,k,0)-I3_x2(U1,k,0);
+    tp1=I1(U1,k,1)-I3_x1(U1,k,1)-I3_x2(U1,k,1);
+    tp2=I1(U1,k,2)-I3_x1(U1,k,2)-I3_x2(U1,k,2);
+    tp3=I1(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3);
+    tp4=I1(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4);
+    tp5=I1(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5);
+    tp6=I1(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6);
+
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
+    //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+
+    for(l=0;l<7;l++) Utmp[k_local*7+l] = 0.75*U_vals[k*7+l] + 0.25*U1[k*7+l] + 0.25*dt*H[l];
+  }
+  if(myrank_mpi == 0) {
+    //dump the weights we've computed into U1
+    for(k=0;k<chunksize_dg;k++) {
+	      for(l=0;l<7;l++) U1[k*7+l] = Utmp[k*7+l];
+    }
+    //receive from all other processes
+    for(i=1;i<nprocs_mpi;i++) {
+		MPI_Recv(output_buffer_vp, chunksize_dg*7, MPI_DOUBLE, i, i, MPI_COMM_WORLD, &status); // receive weight from other processes consecutively, rank i=1..numNodes-1, ensuring the weights are stored in the file consecutively !
+		for(k=0;k<chunksize_dg;k++) {
+			for(l=0;l<7;l++)U1[(k + i*chunksize_dg)*7+l] = output_buffer_vp[k*7+l];
+        }
+    }
+  }
+  else MPI_Send(Utmp, chunksize_dg*7, MPI_DOUBLE, 0, myrank_mpi, MPI_COMM_WORLD);
+
+
+  MPI_Bcast(&U1[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  /////////////////// 2nd step of RK3 done////////////////////////////////////////////////////////
+
+  #pragma omp parallel for schedule(dynamic) private(H, k, k_local, l, tp0, tp1, tp2, tp3, tp4, tp5)  shared(U1,Utmp)
+  for(k=chunksize_dg*myrank_mpi;k<chunksize_dg*(myrank_mpi+1);k++){
+    k_local = k%chunksize_dg;
+
+    tp0=I1(U1,k,0)-I3_x1(U1,k,0)-I3_x2(U1,k,0);
+    tp1=I1(U1,k,1)-I3_x1(U1,k,1)-I3_x2(U1,k,1);
+    tp2=I1(U1,k,2)-I3_x1(U1,k,2)-I3_x2(U1,k,2);
+    tp3=I1(U1,k,3)-I3_x1(U1,k,3)-I3_x2(U1,k,3);
+    tp4=I1(U1,k,4)-I3_x1(U1,k,4)-I3_x2(U1,k,4);
+    tp5=I1(U1,k,5)-I3_x1(U1,k,5)-I3_x2(U1,k,5);
+    tp6=I1(U1,k,6)-I3_x1(U1,k,6)-I3_x2(U1,k,6);
+
+    H[0] = (19*tp0/4. - 15*tp6)/scalex/scalev;
+    H[6] = (60*tp6 - 15*tp0)/scalex/scalev;
+    //for(l=1;l<5;l++)H[l] = tp[l]*12./dx/scalev;;//H[k_local][l] = tp[l]*12./dx/scalev;
+    H[1] = tp1*12./scalex/scalev; H[2] = tp2*12./scalex/scalev; H[3] = tp3*12./scalex/scalev; H[4] = tp4*12./scalex/scalev; H[5] = tp4*12./scalex/scalev;
+    //H[2] = 0; // termporarily necessary as stray uninitiated values may have been messing with U results
+
+    for(l=0;l<7;l++) Utmp[k_local*7+l] = U_vals[k*7+l]/3. + U1[k*7+l]*2./3. + dt*H[l]*2./3.;
+  }
+  if(myrank_mpi == 0) {
+    //dump the weights we've computed into U1
+    for(k=0;k<chunksize_dg;k++) {
+	      for(l=0;l<7;l++) U_vals[k*7+l] = Utmp[k*7+l];
+    }
+    //receive from all other processes
+    for(i=1;i<nprocs_mpi;i++) {
+	    MPI_Recv(output_buffer_vp, chunksize_dg*7, MPI_DOUBLE, i, i, MPI_COMM_WORLD, &status); // receive weight from other processes consecutively, rank i=1..numNodes-1, ensuring the weights are stored in the file consecutively !
+	    for(k=0;k<chunksize_dg;k++) {
+		  for(l=0;l<7;l++)U_vals[(k + i*chunksize_dg)*7+l] = output_buffer_vp[k*7+l];
+        }
+    }
+  }
+  else MPI_Send(Utmp, chunksize_dg*7, MPI_DOUBLE, 0, myrank_mpi, MPI_COMM_WORLD);
+
+  MPI_Bcast(&U_vals[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  /////////////////// 3rd step of RK3 done////////////////////////////////////////////////////////
+}
+
+
 
 #else
 /*

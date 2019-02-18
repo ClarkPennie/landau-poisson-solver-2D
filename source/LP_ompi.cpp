@@ -106,6 +106,7 @@ double *fEquiVals;																					// declare f_equivals (to store the equil
 bool Damping1D_x1, Damping1D_x2;																	// declare Boolean variables which will determine the ICs for the problem
 bool Periodic_x2, SpecReflec_x2;																	// declare Boolean variables which will determine the BCs for the problem
 bool SwapPoisBCs;																					// declare SwampPoisBCs (a Boolean option to switch the components for Dirichlet & Neumann BCs for Poisson's equation - When false: Dirichlet is in x1-direction, When true: Dirichlet is in x2-direction)
+bool NoField;                                                                                       // declare a Boolean variable to turn off the field in the advection step
 
 int main()
 {
@@ -115,8 +116,6 @@ int main()
 	double tmp, mass, a[3], KiE, EleE; //, KiEratio;												// declare tmp (the square root of electric energy), mass (the mass/density rho), a (the momentum vector J), KiE (the kinetic energy), EleE (the electric energy) & KiEratio (the ratio of kinetic energy between where f is positive and negative)
 	double ent1, l_ent1, ll_ent1; //, ent2, l_ent2, ll_ent2;										// declare ent1 (the entropy with negatives discarded), l_ent1 (log of the ent1), ll_ent1 (log of log of ent1), ent2 (the entropy with average values of f), l_ent2 (log of the ent2), ll_ent2 (log of log of ent2)
 	vector<double> U(7*size, 0);																	// declare the vector U (to store the coefficients of the DG approximation to the electron pdf, where entry 7*(i1NxNv^3+i2Nv^3+j1Nv^2+j2Nv+j3)+k is the coefficient of the basis function supported on cell (i1, i2, j1, j2, j3) with shape k)
-	vector<double> POTC(3*NX*NYREAL);																// declare the vector POTC (to store the coefficients of the LDG approximation to the electric potential, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
-	vector<double> phix(3*NX*NYREAL,0), phiy(3*NX*NYREAL,0);										// declare the vectors phix & phiy (to store the coefficients of the LDG approximation to the electric field, in the x & y directions, respectively, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
 	double **f, *output_buffer;//, **conv_weights_local;											// declare pointers to U (the vector containing the coefficients of the DG basis functions for the solution f(x,v,t) at the given time t), f (the solution which has been transformed from the DG discretisation to the appropriate spectral discretisation) & output_buffer (from where to send MPI messages)
 	double **conv_weights, **conv_weights_linear;													// declare a pointer to conv_weights (a matrix of the weights for the convolution in Fourier space of single species collisions) conv_weights_linear (a matrix of convolution weights in Fourier space of two species collisions)
   
@@ -155,6 +154,13 @@ int main()
    
 	double MPIt1, MPIt2, MPIelapsed;																// declare MPIt1 (the start time of an MPI operation), MPIt2 (the end time of an MPI operation) and MPIelapsed (the total time for the MPI operation)
 
+	Damping1D_x1 = true;
+	Damping1D_x2 = false;
+	SwapPoisBCs = false;
+	Periodic_x2 = false;
+	SpecReflec_x2 = true;
+	NoField = true;
+
 	if(size_v%nprocs_mpi != 0)																		// check that size_v/nprocs_mpi has no remainder
 	{
 		if (myrank_mpi==0)
@@ -184,11 +190,20 @@ int main()
 	Utmp = (double*)malloc(chunksize_dg*7*sizeof(double));											// allocate enough space at the pointer Utmp for 6*chunksize_dg many floating point numbers
 	// H[i] = (double*)malloc(6*sizeof(double));}
 	output_buffer_vp = (double *) malloc(chunksize_dg*7*sizeof(double));							// allocate enough space at the pointer output_buffer_vp for 6*chunksize_dg many floating point numbers
+	int field_size = 3*NX*NYREAL;																	// declare field_size (to hold the number of DG coefficients that represent the electric potential and field)
+	if(NoField)
+	{
+		field_size = 0;
+	}
+	vector<double> POTC(field_size);															// declare the vector POTC (to store the coefficients of the LDG approximation to the electric potential, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
+	vector<double> phix(field_size,0), phiy(field_size,0);									// declare the vectors phix & phiy (to store the coefficients of the LDG approximation to the electric field, in the x & y directions, respectively, where entry 3*(i1NX+i2)+k is the coefficient of the basis function supported on cell (i1, i2) with shape k)
   
+	/* 1D
 	cp = (double *)malloc(Nx*sizeof(double));														// allocate enough space at the pointer cp for Nx many double numbers
 	intE = (double *)malloc(Nx*sizeof(double));														// allocate enough space at the pointer intE for Nx many double numbers
 	intE1 = (double *)malloc(Nx*sizeof(double));													// allocate enough space at the pointer intE1 for Nx many double numbers
 	intE2 = (double *)malloc(Nx*sizeof(double));													// allocate enough space at the pointer intE2 for Nx many double numbers
+	*/
 
 	fNegVals = (int*)malloc(size*sizeof(int));														// allocate enough space at the pointer fNegVals for size many integers
 	fAvgVals = (double*)malloc(size*sizeof(double));												// allocate enough space at the pointer fAvgVals for size many doubles
@@ -361,20 +376,17 @@ int main()
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x2v2_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_margx1x2,"Data/Marginals_x1x2_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Marginals_x1x2_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
-	sprintf(buffer_phi,"Data/PhiVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
-					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
-	sprintf(buffer_Ex1,"Data/Ex1Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
-					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
-	sprintf(buffer_Ex2,"Data/Ex2Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
-					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	if(! NoField)
+	{
+		sprintf(buffer_phi,"Data/PhiVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+						nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);				// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+		sprintf(buffer_Ex1,"Data/Ex1Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+						nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);				// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+		sprintf(buffer_Ex2,"Data/Ex2Vals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
+						nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);				// create a .dc file name, located in the directory Data, whose name is PhiVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
+	}
 	sprintf(buffer_ent,"Data/EntropyVals_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is EntropyVals_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
-
-	Damping1D_x1 = true;
-	Damping1D_x2 = false;
-	SwapPoisBCs = false;
-	Periodic_x2 = false;
-	SpecReflec_x2 = true;
 
 	if(myrank_mpi==0)
 	{
@@ -390,6 +402,11 @@ int main()
 		{
 			std::cout << "An x2 direction BC has not been chosen, program cannot run." << std::endl;
 			exit(0);
+		}
+		if(NoField)
+		{
+			std::cout << "The advection process is being run without a field."
+				<< std::endl << std::endl;
 		}
 	}
 
@@ -446,12 +463,14 @@ int main()
 	 */
 
 	/* SETUP THE DG FORMULATION FOR POISSON'S EQUATION */
-	adim();
-	setup();
-	config();
-	setup_pois();
-	setup_matrix();
-//	InitPOT();
+	if(! NoField)
+	{
+		adim();
+		setup();
+		config();
+		setup_pois();
+		setup_matrix();
+	}
 
 	FILE *fmom, *fu, *fufull, *fmarg_x1v1, *fmarg_x2v2, *fmarg_x1x2, *fent, *fphi, *fEx1, *fEx2;	// declare pointers to the files fmom (which will store the moments), fu (which will store the solution U), fufull (which will store the solution U in the TwoStream case), fmarg_x1v1 (which will store the values of the marginals in the x1 & v1 variables), fmarg_x2v2 (which will store the values of the marginals in the x2 & v2 variables), fmarg_x1x2 (which will store the values of the marginals in the x1 & x2 variables), fent (which will store the values fo the entropy), fphi (which will store the values of the potential phi), fEx1 (which will store the values of the field in the x1 direction) & fEx2 (which will store the values of the field in the x2 direction)
 
@@ -509,34 +528,50 @@ int main()
 		fmarg_x1v1=fopen(buffer_margx1v1,"w");														// set fmarg_x1v1 to be a file with the name stored in buffer_marg_x1v1 and set the file access mode to w (which creates an empty file and allows it to be written to)
 		fmarg_x2v2=fopen(buffer_margx2v2,"w");														// set fmarg_x2v2 to be a file with the name stored in buffer_marg_x2v2 and set the file access mode to w (which creates an empty file and allows it to be written to)
 		fmarg_x1x2=fopen(buffer_margx1x2,"w");														// set fmarg_x1x2 to be a file with the name stored in buffer_marg_x1x2 and set the file access mode to w (which creates an empty file and allows it to be written to)
-		fphi=fopen(buffer_phi,"w");																	// set fphi to be a file with the name stored in buffer_phi and set the file access mode to w (which creates an empty file and allows it to be written to)
-		fEx1=fopen(buffer_Ex1,"w");																	// set fEx1 to be a file with the name stored in buffer_Ex1 and set the file access mode to w (which creates an empty file and allows it to be written to)
-		fEx2=fopen(buffer_Ex2,"w");																	// set fEx2 to be a file with the name stored in buffer_Ex2 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		if(! NoField)
+		{
+			fphi=fopen(buffer_phi,"w");																// set fphi to be a file with the name stored in buffer_phi and set the file access mode to w (which creates an empty file and allows it to be written to)
+			fEx1=fopen(buffer_Ex1,"w");																// set fEx1 to be a file with the name stored in buffer_Ex1 and set the file access mode to w (which creates an empty file and allows it to be written to)
+			fEx2=fopen(buffer_Ex2,"w");																// set fEx2 to be a file with the name stored in buffer_Ex2 and set the file access mode to w (which creates an empty file and allows it to be written to)
+		}
 		fent=fopen(buffer_ent,"w");																	// set fent to be a file with the name stored in buffer_ent and set the file access mode to w (which creates an empty file and allows it to be written to)
 
 		//FindNegVals(U, fNegVals, fAvgVals);															// find out in which cells the approximate solution goes negative and record it in fNegVals
 
-		//ComputeEquiVals(fEquiVals);																	// compute the values of the equilibrium solution, for use in Gaussian quadrature, and store them in f_equivals
-
-	    pois2d(U, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
+		if(! NoField)
+		{
+			pois2d(U, POTC, phix, phiy);																// solve Poisson's equation, using the DG coefficients stored in U, storing the coefficients of the potential, field in the x1 direction & field in the x2 direction in POTC, phix & phiy, respectively
+		}
 
 		mass=computeMass(U);																		// set mass to the value calculated through computeMass, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
 		computeMomentum(U, a);																		// calculate the momentum for the solution f(x,v,t) at the current time t, using its DG coefficients stored U, and store it in a
 		KiE=computeKiE(U);																			// set KiE to the value calculated through computeKiE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
-		EleE=computeEleE(phix, phiy);																// set EleE to the value calculated through computeEleE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
-		tmp = sqrt(EleE);																			// set tmp to the square root of EleE
+		if(! NoField)
+		{
+			EleE=computeEleE(phix, phiy);															// set EleE to the value calculated through computeEleE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
+			tmp = sqrt(EleE);																		// set tmp to the square root of EleE
+		}
 		ent1 = computeEntropy(U);																	// set ent1 the value calculated through computeEntropy
 		l_ent1 = log(fabs(ent1));																	// set l_ent1 to the log of ent1
 		ll_ent1 = log(fabs(l_ent1));																// set ll_ent1 to the log of l_ent1
 		//ent2 = computeRelEntropy(U, fEquiVals);														// set ent2 the value calculated through computeRelEntropy
 		//l_ent2 = log(fabs(ent2));																	// set l_ent2 to the log of ent2
 		//ll_ent2 = log(fabs(l_ent2));																// set ll_ent2 to the log of l_ent2
-		printf("step #0: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g %11.8g \n",
-				mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE, ent1);					// display in the output file that this is step 0 (so these are the initial conditions), then the mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)), total energy & entropy
-		fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g \n",
-				mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE);						// in the file tagged as fmom, print the initial mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)) & total energy
-		fprintf(fent, "%11.8g %11.8g %11.8g \n",
-				ent1, l_ent1, ll_ent1);		//, ent2, l_ent2, ll_ent2);								// in the file tagged as fent, print the entropy, its log, the log of that, then the relative entropy, its log and then the log of that
+		if(NoField)
+		{
+			printf("step 0: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g \n",
+					mass, a[0], a[1], a[2], KiE, ent1);												// display in the output file that this is step 0 (so these are the initial conditions), then the mass, 3 components of momentum, kinetic energy & entropy
+			fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g \n",
+					mass, a[0], a[1], a[2], KiE);													// in the file tagged as fmom, print the initial mass, 3 components of momentum & kinetic energy
+		}
+		else
+		{
+			printf("step #0: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g %11.8g \n",
+					mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE, ent1);				// display in the output file that this is step 0 (so these are the initial conditions), then the mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)), total energy & entropy
+			fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g \n",
+					mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE);					// in the file tagged as fmom, print the initial mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)) & total energy
+		}
+		fprintf(fent, "%11.8g %11.8g %11.8g \n", ent1, l_ent1, ll_ent1);		//, ent2, l_ent2, ll_ent2);								// in the file tagged as fent, print the entropy, its log, the log of that, then the relative entropy, its log and then the log of that
 
 		//KiEratio = computeKiEratio(U, fNegVals);													// compute the ratio of the kinetic energy where f is negative to that where it is positive and store it in KiEratio
 		//printf("Kinetic Energy Ratio = %g\n", KiEratio);											// print the ratio of the kinetic energy where f is negative to that where it is positive
@@ -553,8 +588,12 @@ int main()
 
 		PrintMarginalLoc(fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);										// print the values of x1 & v1, x2 & v2 and x1 & x2 that the marginals will be evaluated at in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
 		PrintMarginal(U, fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);										// print the (x1,v1), (x2,v2) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
-	    PrintFieldLoc(fphi, fEx1, fEx2);															// print the values of x1 & x2 that the potential and field will be evaluated at in the files tagged as fphi, fEx1 & fEx2
-	    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);											// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
+
+		if(! NoField)
+		{
+			PrintFieldLoc(fphi, fEx1, fEx2);															// print the values of x1 & x2 that the potential and field will be evaluated at in the files tagged as fphi, fEx1 & fEx2
+			PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);											// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
+		}
 	}
   
 	MPI_Bcast(&U[0], size*7, MPI_DOUBLE, 0, MPI_COMM_WORLD);   											// send the contents of U, which will be 6*size entries of datatype MPI_DOUBLE, from the process with rank 0 to all processes, using the communicator MPI_COMM_WORLD
@@ -563,8 +602,14 @@ int main()
 	MPIt1 = MPI_Wtime();																			// set MPIt1 to the current time in the MPI process
 	while(t < nT) 																					// if t < nT (i.e. not yet reached the final timestep), perform time-splitting to first advect the particle through the collisionless step and then perform one space homogeneous collisional step)
 	{
-		RK3(U, POTC, phix, phiy);																	// Use RK3 to perform one timestep of the collisionless problem
-
+		if(NoField)
+		{
+			RK3_NoField(U);																// Use RK3 to perform one timestep of the collisionless problem
+		}
+		else
+		{
+			RK3(U, POTC, phix, phiy);																// Use RK3 to perform one timestep of the collisionless problem
+		}
 		if(nu > 0.)
 		{
 			setInit_spectral(U, f); 																// Take the coefficient of the DG solution from the advection step, and project them onto the grid used for the spectral method to perform the collision step
@@ -642,20 +687,32 @@ int main()
 			mass=computeMass(U);																	// set mass to the value calculated through computeMass, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
 			computeMomentum(U, a);																	// calculate the momentum for the solution f(x,v,t) at the current time t, using its DG coefficients stored U, and store it in a
 			KiE=computeKiE(U);																		// set KiE to the value calculated through computeKiE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
-			EleE=computeEleE(phix, phiy);															// set EleE to the value calculated through computeEleE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
-			tmp = sqrt(EleE);																		// set tmp to the square root of EleE
+			if(! NoField)
+			{
+				EleE=computeEleE(phix, phiy);															// set EleE to the value calculated through computeEleE, for the solution f(x,v,t) at the current time t, using its DG coefficients stored U
+				tmp = sqrt(EleE);																		// set tmp to the square root of EleE
+			}
 			ent1 = computeEntropy(U);																// set ent1 the value calculated through computeEntropy
 			l_ent1 = log(fabs(ent1));																// set l_ent1 to the log of ent1
 			ll_ent1 = log(fabs(l_ent1));															// set ll_ent1 to the log of l_ent1
 			//ent2 = computeRelEntropy(U, fEquiVals);													// set ent2 the value calculated through computeRelEntropy
 			//l_ent2 = log(fabs(ent2));																// set l_ent2 to the log of ent2
 			//ll_ent2 = log(fabs(l_ent2));															// set ll_ent2 to the log of l_ent2
-			printf("step %d: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g %11.8g \n",
-					t+1, mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE, ent1);			// display in the output file that this is step t+1, then the mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)), total energy & entropy
-			fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g \n",
-					mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE);					// in the file tagged as fmom, print the initial mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)) & total energy
-			fprintf(fent, "%11.8g %11.8g %11.8g \n",
-					ent1, l_ent1, ll_ent1);		//, ent2, l_ent2, ll_ent2);							// in the file tagged as fent, print the entropy, its log, the log of that, then the relative entropy, its log and then the log of that
+			if(NoField)
+			{
+				printf("step %d: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g \n",
+						t+1, mass, a[0], a[1], a[2], KiE, ent1);									// display in the output file that this is step t+1, then the mass, 3 components of momentum, kinetic energy & entropy
+				fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g \n",
+						mass, a[0], a[1], a[2], KiE);												// in the file tagged as fmom, print the initial mass, 3 components of momentum & kinetic energy
+			}
+			else
+			{
+				printf("step %d: %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g %11.8g %11.8g \n",
+						t+1, mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE, ent1);		// display in the output file that this is step t+1, then the mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)), total energy & entropy
+				fprintf(fmom, "%11.8g %11.8g %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g  %11.8g \n",
+						mass, a[0], a[1], a[2], KiE, EleE, tmp, log(tmp), KiE+EleE);				// in the file tagged as fmom, print the initial mass, 3 components of momentum, kinetic energy, electric energy, sqrt(electric energy), log(sqrt(electric energy)) & total energy
+			}
+			fprintf(fent, "%11.8g %11.8g %11.8g \n", ent1, l_ent1, ll_ent1);		//, ent2, l_ent2, ll_ent2);							// in the file tagged as fent, print the entropy, its log, the log of that, then the relative entropy, its log and then the log of that
 
 			//KiEratio = computeKiEratio(U, fNegVals);												// compute the ratio of the kinetic energy where f is negative to that where it is positive and store it in KiEratio
 			//printf("Kinetic Energy Ratio = %g\n", KiEratio);										// print the ratio of the kinetic energy where f is negative to that where it is positive
@@ -678,8 +735,11 @@ int main()
 	    	//if(t%400==0)fwrite(U,sizeof(double),size*6,fu);
 			if(t%20==0)
 			{
-			    PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);									// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
 				PrintMarginal(U, fmarg_x1v1, fmarg_x2v2, fmarg_x1x2);								// print the (x1,v1), (x2,v2) & (x1,x2) marginal distributions for the initial condition, using the DG coefficients in U, in the files tagged as fmarg_x1v1, fmarg_x2v2 & fmarg_x1x2, respectively
+				if(! NoField)
+				{
+					PrintFieldData(fphi, fEx1, fEx2, POTC, phix, phiy);								// print the values of the potential, the field in the x1 & the field in the x2 directions, using the DG coefficients in POTC, phix & phiy, in the files tagged as fphi, fEx1 & fEx2, respectively
+				}
 			}
 		}
 	
@@ -706,9 +766,12 @@ int main()
 		fclose(fmarg_x1v1);  																		// remove the tag fmarg_x1v1 to close the file
 		fclose(fmarg_x2v2);  																		// remove the tag fmarg_x2v2 to close the file
 		fclose(fmarg_x1x2);  																		// remove the tag fmarg_x1x2 to close the file
-		fclose(fphi);  																				// remove the tag fphi to close the file
-		fclose(fEx1);  																				// remove the tag fphi to close the file
-		fclose(fEx2);  																				// remove the tag fphi to close the file
+		if(! NoField)
+		{
+			fclose(fphi);  																			// remove the tag fphi to close the file
+			fclose(fEx1);  																			// remove the tag fphi to close the file
+			fclose(fEx2);  																			// remove the tag fphi to close the file
+		}
 		fclose(fent);  																				// remove the tag fent to close the file
 		#ifdef TwoStream																			// only do this if TwoStream was defined
 		//fclose(fufull);
@@ -729,9 +792,9 @@ int main()
 	}
 	free(output_buffer_vp);																			// delete the dynamic memory allocated for output_buffer_vp
 	free(Utmp); // free(H);																			// delete the dynamic memory allocated for & Utmp
-	free(cp); free(intE); free(intE1); free(intE2);													// delete the dynamic memory allocated for cp, intE, intE1 & inteE2
+	// free(cp); free(intE); free(intE1); free(intE2);		// 1D									// delete the dynamic memory allocated for cp, intE, intE1 & inteE2
 
-	free(fNegVals); free(fAvgVals);	free (fEquiVals);												// delete the dynamic memory allocated for fNegVals, fAvgVals & fEquiVals
+	free(fNegVals); free(fAvgVals);	free(fEquiVals);												// delete the dynamic memory allocated for fNegVals, fAvgVals & fEquiVals
   
 	MPI_Finalize();																					// ensure that MPI exits cleanly
 	return 0;																						// return 0, since main is of type int (and this shows the program completed correctly)
