@@ -1,4 +1,4 @@
-bin_PROGRAMS  = LPsolver_2D
+bin_PROGRAMS  = LPsolver_2D_NoField
 AM_CPPFLAGS   = $(FFTW_CFLAGS) 
 AM_CPPFLAGS  += -I$(OPENBLAS_INC)
 LIBS          = $(BLAS_LIBS) $(MKL_LIBS)
@@ -13,4 +13,4 @@ cpp_sources = EntropyCalculations.cpp LP_ompi.cpp NegativityChecks.cpp  collisio
 	      MomentCalculations.cpp advection_1.cpp \
               PoissonFunctions.cpp PoissonPrint.cpp PoissonVariables.cpp
 
-LPsolver_2D_SOURCES = $(cpp_sources) $(h_sources)
+LPsolver_2D_NoField_SOURCES = $(cpp_sources) $(h_sources)
