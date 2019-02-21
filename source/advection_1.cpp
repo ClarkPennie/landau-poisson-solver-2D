@@ -430,9 +430,9 @@ double I3_x1(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	return result;
 }
 
-double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calculate the difference of the second and third integrals in H_(i,j), namely \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2
+double I3_x2(vector<double>& U_vals0, int k, int l) 														// Calculate the difference of the second and third integrals in H_(i,j), namely \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2
 {
-	double result, ur, ul;																					// declare result (the result of the integral to be returned), ur (used in the evaluation of gh^+/- on the right space cell edge) & ul (used in the evaluation of gh^+/- on the left space cell edge)
+	double result, ur_x2, ul_x2, ur_v2, ul_v2;																// declare result (the result of the integral to be returned), ur_x2 (used in the evaluation of gh^+/- on the right space cell edge), ul_x2 (used in the evaluation of gh^+/- on the left space cell edge), ur_v2 & u_v2 (in case specular reflection is in use and these coefficients must be negative)
 	int i1, i2, j1, j2, j3, iil, iir, kkl, kkr; 															// declare i1 & i2 (the space cell coordinatex), j1, j2, j3 (the coordinates of the velocity cell), iil (the cell from which the flux is flowing on the left of cell i in space), iir (the cell from which the flux is flowing on the right of cell i in space), kkl (the global index of the cell with coordinate (iil, j1, j2, j3)) & kkr (the global index of the cell with coordinate (iir, j1, j2, j3))
 	int j_mod = k%size_v;																					// declare and calculate j_mod (the remainder when k is divided by size_v = Nv^3 - used to help determine the values of i1, i2, j1, j2 & j3 from the value of k)
 	int i_mod = (k-j_mod)/size_v;																			// declare and calculate i_mod (the remainder value when k has j_mod subtracted and divided through by size_v - used to help determine the values of i1 & i2)
@@ -442,8 +442,9 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	i2 = i_mod%Nx;																							// calculate i2 for the given k
 	i1 = (i_mod - i2)/Nx;																					// calculate i1 for the given k
 	double v_j2 = Gridv((double)j2);																		// declare v_j2 and set it to value of v_2 at the center of cell j_2
+	int sign = 1;																							// declare sign (used to switch the sign of coefficients in specular reflection BCs)
 
-	if(j2<Nv/2)																								// do this if j1 < Nv/2 (so that the velocity in the v1 direction is negative)
+	if(j2<Nv/2)																								// do this if j1 < Nv/2 (so that the velocity in the v2 direction is negative)
 	{
 		iir=i2+1; iil=i2; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
 //		iir=i1+1; iil=i1; 																					// set iir to the value of i2+1 and iil to the value of i2 (as here the flow of information is from right to left so that gh^+ must be used at the cell edges)
@@ -458,15 +459,18 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 				iir = Nx-1;																					// for specular reflection, use values within the same space cell
 				j2 = Nv - 1 - j2;																			// reflect the v2 component of velocity across 0
 				j_mod = j1*Nv*Nv + j2*Nv + j3;																// replace j_mod with the corresponding value for the new j2
+				sign = -1;																					// set sign to -1 since some coefficients here need to be made negative
 			}
 		}
 		kkr=i1*Nx*size_v + iir*size_v + j_mod; 																// calculate the value of kkr for this value of iir
 //		kkr=iir*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkr for this value of iir
 		kkl=k;																								// set kkl to k (since iil = i2)
-		ur = -U_vals0[kkr*7+2]; 																			// set ur to the negative of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^+ at the right boundary and -ve since v_1 < 0 in here)
-		ul = -U_vals0[kkl*7+2];																				// set ul to the negative of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkl	(which corresponds to the evaluation of gh^+ at the left boundary and -ve since phi < 0 here)
+		ur_x2 = -sign*U_vals0[kkr*7+2]; 																	// set ur_x2 to the negative of the coefficient of the basis function with shape 2 which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^+ at the right boundary and -ve since v_2 < 0 in here), multiplied by sign to use the fact that U[7k+2]=-U[7k'+2] when specular reflection at top boundary
+		ul_x2 = -U_vals0[kkl*7+2];																			// set ul_x2 to the negative of the coefficient of the basis function with shape 2 which is non-zero in the cell with global index kkl	(which corresponds to the evaluation of gh^+ at the left boundary and -ve since v_2 < 0 here)
+		ur_v2 = sign*U_vals0[kkr*7+4];																		// set ur_v2 to sign times the coefficient of the v_2-v_j2 basis function in the cell with global index kkr in case at a specular reflection boundary where it must be negative
+		ul_v2 = U_vals0[kkl*7+4];																			// set ul_v2 to the coefficient of the v_2-v_j2 basis function in the cell with global index kkl
 	}
-	else																									// do this if j1 >= Nv/2 (so that the velocity in the v1 direction is non-negative)
+	else																									// do this if j1 >= Nv/2 (so that the velocity in the v2 direction is non-negative)
 	{
 		iir=i2; iil=i2-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
 //		iir=i1; iil=i1-1;																					// set iir to the value of i2 and iil to the value of i2-1 (as here the flow of information is from left to right so that gh^- must be used at the cell edges)
@@ -481,19 +485,22 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 				iil = 0;																					// for specular reflection, use values within the same space cell
 				j2 = Nv - 1 - j2;																			// reflect the v2 component of velocity across 0
 				j_mod = j1*Nv*Nv + j2*Nv + j3;																// replace j_mod with the corresponding value for the new j2
+				sign = -1;																					// set sign to -1 since some coefficients here need to be made negative
 			}
 		}
 		kkr=k; 																								// set kkr to k (since iir = i1)
 		kkl=i1*Nx*size_v + iil*size_v + j_mod; 																// calculate the value of kkl for this value of iil
 //		kkl=iil*Nx*size_v + i2*size_v + j_mod; 																// calculate the value of kkl for this value of iil
-		ur = U_vals0[kkr*7+2];																				// set ur to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^- at the right boundary and +ve since v_1 >= 0 in here)
-		ul = U_vals0[kkl*7+2];																				// set ul to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkl (which corresponds to the evalutaion of gh^- at the left boundary and +ve since v_r >= 0 in here)
+		ur_x2 = U_vals0[kkr*7+2];																			// set ur_x2 to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkr (which corresponds to the evaluation of gh^- at the right boundary and +ve since v_2 >= 0 in here)
+		ul_x2 = sign*U_vals0[kkl*7+2];																		// set ul_x2 to the value of the coefficient of the basis function with shape l which is non-zero in the cell with global index kkl (which corresponds to the evalutaion of gh^- at the left boundary and +ve since v_2 >= 0 in here), multiplied by sign to use the fact that U[7k+2]=-U[7k'+2] when specular reflection at top boundary
+		ur_v2 = U_vals0[kkr*7+4];																			// set ur_v2 to the coefficient of the v_2-v_j2 basis function in the cell with global index kkr
+		ul_v2 = sign*U_vals0[kkl*7+4];																		// set ul_v2 to sign times the coefficient of the v_2-v_j2 basis function in the cell with global index kkl in case at a specular reflection boundary where it must be negative
 	}
 
 	/* NEED TO MULTIPLY ALL THESE BY dx AFTER I FUNCTIONS IMPLEMENTED! */
 	if(l==0)
 	{
-		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur_x2 - ul_x2) + 0.25*(U_vals0[kkr*7+6] - U_vals0[kkl*7+6]))*v_j2 + (ur_v2 - ul_v2)*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==1)
 	{
@@ -501,7 +508,7 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	}
 	else if(l==2)
 	{
-		result = 0.5*dx*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur + ul) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j2 + (U_vals0[kkr*7+4] + U_vals0[kkl*7+4])*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
+		result = 0.5*dx*scalev*(((U_vals0[kkr*7+0] + U_vals0[kkl*7+0]) + 0.5*(ur_x2 + ul_x2) + 0.25*(U_vals0[kkr*7+6] + U_vals0[kkl*7+6]))*v_j2 + (ur_v2 + ul_v2)*dv/12.);					// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 0 (i.e. constant) which is non-zero in the cell with global index k
 	}
 	else if(l==3)
 	{
@@ -509,7 +516,7 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	}
 	else if(l==4)
 	{
-		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*v_j2)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur_x2 - ul_x2) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*dv + (ur_v2 - ul_v2)*v_j2)/12.;				// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 2 (i.e. linear in v_1) which is non-zero in the cell with global index k
 	}
 	else if(l==5)
 	{
@@ -517,7 +524,7 @@ double I3_x2(vector<double>& U_vals0, int k, int l) 																			// Calcul
 	}
 	else if(l==6)
 	{
-		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur - ul) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j2 + (U_vals0[kkr*7+4] - U_vals0[kkl*7+4])*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
+		result = dx*scalev*(((U_vals0[kkr*7+0] - U_vals0[kkl*7+0]) + 0.5*(ur_x2 - ul_x2) + (U_vals0[kkr*7+6] - U_vals0[kkl*7+6])*19./60.)*v_j2 + (ur_v2 - ul_v2)*dv*19./180.)/4.;	// calculate \int_j v1*gh*phi dv at interface x=x_i+1/2 - \int_j v1*gh*phi dv at interface x=x_i-1/2 for the basis function with shape 5 (i.e. modulus of v) which is non-zero in the cell with global index k
 	}
 
 	return result;

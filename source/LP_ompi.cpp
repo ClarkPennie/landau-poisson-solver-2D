@@ -19,7 +19,7 @@
 
 double PI=M_PI;																						// declare PI and set it to M_PI (the value stored in the library math.h)
 int M=5;																							// declare M (the number of collision invarients) and set it equal to 5
-int Nx=24, Nv=24, nT=10, N=16;												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
+int Nx=32, Nv=16, nT=10, N=16;												 						// declare Nx (no. of x discretised points), Nv (no. of v discretised point), nT (no. of time discretised points) & N (no. of nodes in the spectral method) and setting all their values			// DEBUG: Nx = 5, Nv = 5
 int size_x = Nx*Nx, size_v=Nv*Nv*Nv, size=size_x*size_v, size_ft=N*N*N; 							// declare size_x (no. of total x discretised points in 2D), size_v (no. of total v discretised points in 3D) and set it to Nv^3, size (the total no. of discretised points) and set it to size_v*Nx & size_ft (total no. of spectral discretised points in 3D) and set it to N*N*N
 
 int NX = Nx, NY = Nx, NYREAL = NY;																	// declare NX (no. of x1 discretised points for the Poisson solver), NY (no. of x2 discretised points for the Poisson solver) & NYREAL (no. of x2 discretised points for the Poisson solver if there is an oxide-silicon region on top)
@@ -39,7 +39,7 @@ double Lx=2*PI/k_wave, Lv=5.25;																		// declare Lx (for 0 < x < Lx) 
 double dv=2.*Lv/Nv, dx=Lx/Nx; 																		// declare dv (the velocity stepsize) and set it to 2Lv/Nv & dx (the space stepsize) and set it to Lx/Nx
 double L_v=Lv, R_v=Lv, L_eta;																		// declare L_v (for -Lv < v < Lv in the collision problem) and set it to Lv, R_v (for v in B_(R_v) in the collision problem) and set it to Lv & L_eta (for Fourier space, -L_eta < eta < L_eta)
 double h_eta, h_v;																					// declare h_eta (the Fourier stepsize) & h_v (also the velocity stepsize but for the collision problem)
-double nu=0.05, dt=0.01; //, nthread=32; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
+double nu=0, dt=0.01; //, nthread=32; 																	// declare nu (1/knudson#) and set it to 0.02, dt (the timestep) and set it to 0.004 & nthread (the number of OpenMP threads) and set it to 16
 #endif
 
 #ifdef FourHump																						// only do this if FourHump was defined
@@ -159,7 +159,7 @@ int main()
 	SwapPoisBCs = false;
 	Periodic_x2 = false;
 	SpecReflec_x2 = true;
-	NoField = true;
+	NoField = false;
 
 	if(size_v%nprocs_mpi != 0)																		// check that size_v/nprocs_mpi has no remainder
 	{
@@ -363,7 +363,7 @@ int main()
 			buffer_margx2v2[120], buffer_margx1x2[120], buffer_ent[120];							// declare the arrays buffer_moment (to store the name of the file where the moments are printed), buffer_u (to store the name of the file where the solution U is printed), buffer_ufull (to store the name of the file where the solution U is printed in the TwoStream), buffer_flags (to store the flag added to the end of the filenames), buffer_phi (to store the name of the file where the values of phi are printed), buffer_margx1v1 (to store the name of the file where the marginals in the x1 & v1 coordinates are printed), buffer_margx2v2 (to store the name of the file where the marginals in the x2 & v2 coordinates are printed), buffer_margx1x2 (to store the name of the file where the marginals in the x1 & x2 coordinates are printed) & buffer_ent (to store the name of the file where the entropy values are printed)
 
 	// EVERY TIME THE CODE IS RUN, CHANGE THE FLAG TO A NAME THAT IDENTIFIES THE CASE RUNNING FOR OR WHAT TIME RUN UP TO:
-	sprintf(buffer_flags,"TestCollisions");														// store a string in buffer_flags to tag the files for this run
+	sprintf(buffer_flags,"SpecReflecFix_Test");														// store a string in buffer_flags to tag the files for this run
 	sprintf(buffer_moment,"Data/Moments_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
 					nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT, buffer_flags);					// create a .dc file name, located in the directory Data, whose name is Moments_ followed by the values of nu, A_amp, k_wave, Nx, Lx, Nv, Lv, N, dt, nT and the contents of buffer_flags and store it in buffer_moment
 	sprintf(buffer_u,"Data/U_nu%gA%gk%gNx%dLx%gNv%dLv%gSpectralN%ddt%gnT%d_%s.dc",
